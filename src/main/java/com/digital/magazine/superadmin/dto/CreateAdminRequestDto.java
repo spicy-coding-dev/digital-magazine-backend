@@ -1,12 +1,16 @@
-package com.digital.magazine.auth.dto;
+package com.digital.magazine.superadmin.dto;
 
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
-public class RegisterRequestDto {
-
+public class CreateAdminRequestDto {
+	
 	@NotBlank(message = "பயனர் பெயர் காலியாக இருக்கக்கூடாது")
 	private String name;
 
@@ -26,4 +30,5 @@ public class RegisterRequestDto {
 	private String country;
 	private String state;
 	private String district;
+
 }

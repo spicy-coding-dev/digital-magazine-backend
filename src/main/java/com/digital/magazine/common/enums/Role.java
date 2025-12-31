@@ -1,4 +1,4 @@
-package com.digital.magazine.user.enums;
+package com.digital.magazine.common.enums;
 
 public enum Role {
     USER,

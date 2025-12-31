@@ -30,12 +30,15 @@ public class SecurityConfiguration {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable()).cors(withDefaults()) // ✅ enable CORS support
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/v1/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+						.requestMatchers("/api/v1/auth/register", "/api/v1/auth/verify-email",
+								"/api/v1/auth/user-login", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
+								"/api/v1/auth/reset-password", "/api/v1/super-admin/verify-email", "/swagger-ui.html",
+								"/swagger-ui/**", "/v3/api-docs/**")
 						.permitAll() // login & register open
-						.requestMatchers("/news/**", "/user/**", "/auth/update-dev-token")
-						.hasAnyRole("USER", "SUPER_ADMIN") // news protected
-						.requestMatchers("/super/v1/**", "/auth/update-dev-token").hasRole("SUPER_ADMIN")
-						.requestMatchers("/auth/logout").authenticated().anyRequest().denyAll())
+						.requestMatchers("/news/**", "/user/**", "/auth/update-dev-token").hasAnyRole("ADMIN") // news
+																												// protected
+						.requestMatchers("/api/v1/super-admin/create-admin").hasRole("SUPER_ADMIN")
+						.requestMatchers("/api/v1/auth/logout").authenticated().anyRequest().denyAll())
 				// ✅ Correctly placed session management for JWT (stateless)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
@@ -48,7 +51,7 @@ public class SecurityConfiguration {
 			String path = request.getRequestURI();
 			String message;
 
-			if (path.startsWith("/super/v1/")) {
+			if (path.startsWith("/api/v1/super-admin/")) {
 				message = "சூப்பர் அட்மின் தரவை அணுக உங்களுக்கு அனுமதி இல்லை";
 			} else if (path.startsWith("/news/") || path.startsWith("/user/")) {
 				message = "இந்த API-க்கு உங்களுக்கு USER role தேவை";

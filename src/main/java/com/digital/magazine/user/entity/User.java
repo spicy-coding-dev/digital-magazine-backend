@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+import com.digital.magazine.common.enums.Role;
 import com.digital.magazine.user.enums.AccountStatus;
-import com.digital.magazine.user.enums.Role;
 
 @Entity
 @Table(name = "users")
