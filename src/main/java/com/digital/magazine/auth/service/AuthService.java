@@ -6,6 +6,7 @@ import com.digital.magazine.auth.dto.RegisterRequestDto;
 import com.digital.magazine.auth.dto.ResetPasswordRequestDto;
 
 import com.digital.magazine.common.response.LoginApiResponse;
+import com.digital.magazine.user.entity.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,5 +26,7 @@ public interface AuthService {
 	public void resetPassword(ResetPasswordRequestDto dto);
 
 	public void logout(HttpServletResponse response);
+	
+	User findByEmail(String email);
 
 }

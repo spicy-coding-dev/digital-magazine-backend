@@ -8,9 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.digital.magazine.common.response.ApiResponse;
 
@@ -127,6 +129,22 @@ public class GlobalExceptionHandler {
 		log.warn("Request body missing or invalid");
 
 		return ResponseEntity.badRequest().body(new ApiResponse<>("Request body அனுப்பப்படவில்லை அல்லது தவறான format"));
+	}
+
+	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+	public ResponseEntity<ApiResponse<String>> handleMediaType(HttpMediaTypeNotSupportedException ex) {
+		log.warn("Unsupported media type: {}", ex.getContentType());
+		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+				.body(new ApiResponse<>("தவறான Content-Type. multipart/form-data பயன்படுத்தவும்"));
+	}
+
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<ApiResponse<String>> handleMaxSize(MaxUploadSizeExceededException ex) {
+
+		log.warn("📦 File upload size exceeded");
+
+		return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(new ApiResponse<>(
+				"பதிவேற்றப்பட்ட கோப்பு அளவு அதிகமாக உள்ளது. தயவுசெய்து 50MB க்குள் உள்ள கோப்பை பதிவேற்றவும்."));
 	}
 
 	// 🔴 FINAL catch-all (never expose internal error)

@@ -2,6 +2,8 @@ package com.digital.magazine.auth.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +15,11 @@ import com.digital.magazine.auth.dto.ForgotPasswordRequestDto;
 import com.digital.magazine.auth.dto.LoginRequestDto;
 import com.digital.magazine.auth.dto.RegisterRequestDto;
 import com.digital.magazine.auth.dto.ResetPasswordRequestDto;
+import com.digital.magazine.auth.dto.UserProfileDto;
 import com.digital.magazine.auth.service.AuthService;
 import com.digital.magazine.common.response.ApiResponse;
 import com.digital.magazine.common.response.LoginApiResponse;
+import com.digital.magazine.user.entity.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,6 +34,22 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthController {
 
 	private final AuthService authService;
+	
+	@GetMapping("/me")
+	public ResponseEntity<UserProfileDto> me(
+	    @AuthenticationPrincipal UserDetails userDetails
+	) {
+	    User user = authService.findByEmail(userDetails.getUsername());
+
+	    return ResponseEntity.ok(
+	        new UserProfileDto(
+	            user.getName(),
+	            user.getEmail(),
+	            user.getRole()
+	        )
+	    );
+	}
+
 
 	@PostMapping("/register")
 	public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequestDto dto) {

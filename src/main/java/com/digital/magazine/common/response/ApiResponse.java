@@ -22,6 +22,13 @@ public class ApiResponse<T> {
 		this.data = null;
 	}
 
+	// success response without message
+	public ApiResponse(T data) {
+		this.success = true;
+		this.message = "Success";
+		this.data = data;
+	}
+
 	// success response with data
 	public ApiResponse(String message, T data) {
 		this.success = true;

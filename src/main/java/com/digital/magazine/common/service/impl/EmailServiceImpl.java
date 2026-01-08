@@ -31,7 +31,7 @@ public class EmailServiceImpl implements EmailService {
 		log.info("Sending verification email to {}", toEmail);
 
 		try {
-			String verificationLink = backendBaseUrl + "/api/v1/auth/verify-email?token=" + token;
+			String verificationLink = backendBaseUrl + "/verify-email?token=" + token;
 
 			String subject = "📩 உங்கள் மின்னஞ்சல் உறுதிப்படுத்தல்";
 

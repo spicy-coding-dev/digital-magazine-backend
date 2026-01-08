@@ -330,5 +330,14 @@ public class AuthServiceImpl implements AuthService {
 
 		log.info("🚪 User logged out successfully");
 	}
+	
+	@Override
+    public User findByEmail(String email) {
+
+        return userRepo.findByEmail(email)
+                .orElseThrow(() ->
+                    new UserNotFoundException("User not found for email: " + email)
+                );
+    }
 
 }
