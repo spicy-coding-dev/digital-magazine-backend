@@ -147,6 +147,30 @@ public class GlobalExceptionHandler {
 				"பதிவேற்றப்பட்ட கோப்பு அளவு அதிகமாக உள்ளது. தயவுசெய்து 50MB க்குள் உள்ள கோப்பை பதிவேற்றவும்."));
 	}
 
+	@ExceptionHandler(UserPendingException.class)
+	public ResponseEntity<ApiResponse<String>> handleUserPending(UserPendingException ex) {
+
+		log.warn("⚠️ UserPendingException: {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage()));
+	}
+
+	@ExceptionHandler(InvalidUserRoleException.class)
+	public ResponseEntity<ApiResponse<String>> handleInvalidRole(InvalidUserRoleException ex) {
+
+		log.warn("🚫 InvalidUserRoleException: {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(ex.getMessage()));
+	}
+
+	@ExceptionHandler(NoBooksFoundException.class)
+	public ResponseEntity<ApiResponse<Object>> handleNoBooks(NoBooksFoundException ex) {
+
+		log.warn("📭 No books response sent to user");
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage()));
+	}
+
 	// 🔴 FINAL catch-all (never expose internal error)
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<String>> handleGenericException(Exception ex) {

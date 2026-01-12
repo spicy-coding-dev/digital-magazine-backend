@@ -153,6 +153,9 @@ public class AuthServiceImpl implements AuthService {
 		String key = request.getEmailOrPhone();
 		log.info("➡️ Processing login for key={}", key);
 
+		// 1️⃣ Account status check
+		checkUserAccountStatus(key);
+
 		// Block check
 		if (loginAttemptService.isBlocked(key)) {
 			log.warn("🚫 Login blocked due to max attempts for key={}", key);
@@ -263,6 +266,9 @@ public class AuthServiceImpl implements AuthService {
 
 		log.info("🔐 Forgot password request received for key={}", dto.getEmailOrMobile());
 
+		// 1️⃣ Account status check
+		checkUserAccountStatus(dto.getEmailOrMobile());
+
 		User user = userRepo.findByEmailOrMobile(dto.getEmailOrMobile()).orElseThrow(() -> {
 			log.warn("❌ Forgot password failed - user not found for key={}", dto.getEmailOrMobile());
 			return new UserNotFoundException("இந்த மின்னஞ்சல் / மொபைல் எண்ணுடன் எந்த பயனரும் இல்லை");
@@ -330,14 +336,36 @@ public class AuthServiceImpl implements AuthService {
 
 		log.info("🚪 User logged out successfully");
 	}
-	
-	@Override
-    public User findByEmail(String email) {
 
-        return userRepo.findByEmail(email)
-                .orElseThrow(() ->
-                    new UserNotFoundException("User not found for email: " + email)
-                );
-    }
+	@Override
+	public User findByEmail(String email) {
+
+		return userRepo.findByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found for email: " + email));
+	}
+
+	private void checkUserAccountStatus(String userEmailOrMobile) {
+
+		User userData = userRepo.findByEmailOrMobile(userEmailOrMobile)
+				.orElseThrow(() -> new UserNotFoundException("User not found"));
+
+		switch (userData.getStatus()) {
+
+		case BLOCKED -> throw new UnauthorizedAccessException(
+				"உங்கள் கணக்கு தற்காலிகமாக முடக்கப்பட்டுள்ளது நிர்வாகத்தை தொடர்பு கொள்ளவும்.");
+
+		case PENDING -> throw new UnauthorizedAccessException(
+				"உங்கள் கணக்கு Pendingல் உள்ளது. தயவுசெய்து உங்கள் மின்னஞ்சலை உறுதிபடுத்தவும்.");
+
+		case ACTIVE -> {
+			// ACTIVE account → nothing to do
+			return;
+		}
+
+		default -> {
+			return; // fallback
+		}
+		}
+	}
 
 }

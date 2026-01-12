@@ -42,7 +42,7 @@ public class UserBookServiceImpl implements UserBookService {
 				.toList();
 
 		return UserBookFullDto.builder().id(book.getId()).title(book.getTitle()).author(book.getAuthor())
-				.category(book.getCategory()).coverImage(book.getCoverImagePath()).paid(book.isPaid())
+				.category(book.getCategory().getTamilLabel()).coverImage(book.getCoverImagePath()).paid(book.isPaid())
 				.price(book.getPrice()).contents(contents).build();
 	}
 

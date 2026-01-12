@@ -32,11 +32,11 @@ public class SecurityConfiguration {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/api/v1/auth/register", "/api/v1/auth/verify-email",
 								"/api/v1/auth/user-login", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
-								"/api/v1/auth/reset-password", "/api/v1/super-admin/verify-email", "/api/v1/auth/me", "/swagger-ui.html",
-								"/swagger-ui/**", "/v3/api-docs/**")
+								"/api/v1/auth/reset-password", "/api/v1/super-admin/verify-email", "/api/v1/auth/me",
+								"/api/v1/subscriptions/getplans", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
 						.permitAll() // login & register open
 						.requestMatchers("/api/v1/user/**").hasAnyRole("USER") // news
-						.requestMatchers("/api/v1/admin/books/upload").hasAnyRole("ADMIN") // news
+						.requestMatchers("/api/v1/admin/**", "/api/v1/subscriptions/**").hasAnyRole("ADMIN") // news
 						.requestMatchers("/api/v1/super-admin/create-admin").hasRole("SUPER_ADMIN")
 						.requestMatchers("/api/v1/auth/logout").authenticated().anyRequest().denyAll())
 				// ✅ Correctly placed session management for JWT (stateless)
@@ -53,7 +53,7 @@ public class SecurityConfiguration {
 
 			if (path.startsWith("/api/v1/super-admin/")) {
 				message = "சூப்பர் அட்மின் தரவை அணுக உங்களுக்கு அனுமதி இல்லை";
-			} else if (path.startsWith("/api/v1/admin/books/")) {
+			} else if (path.startsWith("/api/v1/admin/") || path.startsWith("/api/v1/subscriptions/")) {
 				message = "அட்மின் தரவை அணுக உங்களுக்கு அனுமதி இல்லை";
 			} else if (path.startsWith("api/v1/user/")) {
 				message = "இந்த API-க்கு உங்களுக்கு USER role தேவை";

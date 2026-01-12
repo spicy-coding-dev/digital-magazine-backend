@@ -10,22 +10,32 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.digital.magazine.admin.entity.Books;
+import com.digital.magazine.common.enums.BookCategory;
+import com.digital.magazine.common.enums.BookStatus;
 
 @Repository
 public interface BookRepository extends JpaRepository<Books, Long> {
-	
+
 	Optional<Books> findById(Long Id);
-	
+
 	@Query("""
 			   SELECT b FROM Books b
 			   WHERE b.category = :category
 			     AND b.status = 'PUBLISHED'
 			   ORDER BY b.createdAt DESC
 			""")
-			List<Books> findLatestByCategory(
-			    @Param("category") String category,
-			    Pageable pageable
-			);
+	List<Books> findLatestByCategory(@Param("category") String category, Pageable pageable);
 
+	long countByStatus(BookStatus status);
+
+	@Query("""
+				SELECT COUNT(b)
+				FROM Books b
+				WHERE MONTH(b.createdAt) = MONTH(CURRENT_DATE)
+				  AND YEAR(b.createdAt) = YEAR(CURRENT_DATE)
+			""")
+	long countBooksUploadedThisMonth();
+
+	List<Books> findByCategoryAndStatus(BookCategory category, BookStatus status);
 
 }

@@ -2,6 +2,7 @@ package com.digital.magazine.admin.entity;
 
 import java.time.LocalDateTime;
 
+import com.digital.magazine.common.enums.BookCategory;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.user.entity.User;
 
@@ -42,7 +43,8 @@ public class Books {
 	private String author; // admin / publisher
 
 	@Column(nullable = false)
-	private String category;
+	@Enumerated(EnumType.STRING)
+	private BookCategory category;
 
 	@Column(nullable = false)
 	private String coverImagePath; // Supabase URL
