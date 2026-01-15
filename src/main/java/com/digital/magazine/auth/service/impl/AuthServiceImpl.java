@@ -68,18 +68,25 @@ public class AuthServiceImpl implements AuthService {
 
 		log.info("Registration attempt started for email={}", dto.getEmail());
 
-		User existingUser = userRepo.findByEmail(dto.getEmail()).orElse(null);
+		// 🔹 EMAIL CHECK
+		User emailUser = userRepo.findByEmail(dto.getEmail()).orElse(null);
+		if (emailUser != null) {
 
-		if (existingUser != null) {
-
-			if (existingUser.isEmailVerified()) {
-				log.warn("Registration failed - email already verified: {}", dto.getEmail());
+			if (emailUser.isEmailVerified()) {
+				log.warn("Email already registered and verified: {}", dto.getEmail());
 				throw new EmailAlreadyRegisteredException("இந்த மின்னஞ்சல் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது");
 			}
 
-			log.info("Email exists but not verified. Resending verification email: {}", dto.getEmail());
-			resendVerification(existingUser);
-			return;
+			log.info("Email exists but not verified. Resending verification: {}", dto.getEmail());
+			resendVerification(emailUser);
+			return; // 🔥 VERY IMPORTANT
+		}
+
+		// 🔹 MOBILE CHECK
+		User mobileUser = userRepo.findByMobile(dto.getMobile()).orElse(null);
+		if (mobileUser != null) {
+			log.warn("Mobile already registered: {}", dto.getMobile());
+			throw new EmailAlreadyRegisteredException("இந்த மொபைல் எண் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது");
 		}
 
 		User user = User.builder().name(dto.getName()).email(dto.getEmail()).mobile(dto.getMobile())

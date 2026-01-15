@@ -29,16 +29,21 @@ public class SecurityConfiguration {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable()).cors(withDefaults()) // ✅ enable CORS support
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/v1/auth/register", "/api/v1/auth/verify-email",
+				.authorizeHttpRequests(
+						auth -> auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/verify-email",
 								"/api/v1/auth/user-login", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
 								"/api/v1/auth/reset-password", "/api/v1/super-admin/verify-email", "/api/v1/auth/me",
-								"/api/v1/subscriptions/getplans", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
-						.permitAll() // login & register open
-						.requestMatchers("/api/v1/user/**").hasAnyRole("USER") // news
-						.requestMatchers("/api/v1/admin/**", "/api/v1/subscriptions/**").hasAnyRole("ADMIN") // news
-						.requestMatchers("/api/v1/super-admin/create-admin").hasRole("SUPER_ADMIN")
-						.requestMatchers("/api/v1/auth/logout").authenticated().anyRequest().denyAll())
+								"/api/v1/subscriptions/getplans", "/swagger-ui.html", "/swagger-ui/**",
+								"/v3/api-docs/**", "/api/v1/analytics/guest/**", "/api/v1/user/**").permitAll() // login
+																												// &
+																												// register
+																												// open
+//						.requestMatchers("").hasAnyRole("USER") // news
+								.requestMatchers("/api/v1/admin/**", "/api/v1/subscriptions/**").hasAnyRole("ADMIN") // news
+								.requestMatchers("/api/v1/super-admin/create-admin").hasRole("SUPER_ADMIN")
+								.requestMatchers("/api/v1/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+								.requestMatchers("/api/v1/auth/logout", "/api/v1/analytics/user/**").authenticated()
+								.anyRequest().denyAll())
 				// ✅ Correctly placed session management for JWT (stateless)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
@@ -51,9 +56,10 @@ public class SecurityConfiguration {
 			String path = request.getRequestURI();
 			String message;
 
-			if (path.startsWith("/api/v1/super-admin/")) {
+			if (path.startsWith("/api/v1/super-admin/") || path.startsWith("/api/v1/users/")) {
 				message = "சூப்பர் அட்மின் தரவை அணுக உங்களுக்கு அனுமதி இல்லை";
-			} else if (path.startsWith("/api/v1/admin/") || path.startsWith("/api/v1/subscriptions/")) {
+			} else if (path.startsWith("/api/v1/admin/") || path.startsWith("/api/v1/subscriptions/")
+					|| path.startsWith("/api/v1/users/")) {
 				message = "அட்மின் தரவை அணுக உங்களுக்கு அனுமதி இல்லை";
 			} else if (path.startsWith("api/v1/user/")) {
 				message = "இந்த API-க்கு உங்களுக்கு USER role தேவை";

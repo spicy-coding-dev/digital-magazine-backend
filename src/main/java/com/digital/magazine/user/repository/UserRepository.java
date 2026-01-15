@@ -22,6 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByEmail(String email);
 
+	Optional<User> findByMobile(String mobile);
+
 	boolean existsByEmail(String emailId);
 
 	boolean existsByMobile(String userMobileNumber);
@@ -32,6 +34,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Page<User> findByRole(Role role, Pageable pageable);
 
-	List<User> findByStatus(AccountStatus status);
+	List<User> findByStatusAndRole(AccountStatus status, Role role);
 
 }

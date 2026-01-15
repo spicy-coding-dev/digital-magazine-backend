@@ -8,7 +8,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.digital.magazine.common.service.EmailService;
 
@@ -184,13 +183,9 @@ public class EmailServiceImpl implements EmailService {
 		}
 	}
 
-	@Override
-	public void sendMailWithAttachment(String to, String subject, String content, MultipartFile file) {
-
-		log.debug("📤 Preparing email with attachment | to={}, file={}", to, file.getOriginalFilename());
-
+	public void sendMailWithAttachment(String to, String subject, String content, byte[] attachmentBytes,
+			String fileName) {
 		try {
-
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -199,17 +194,16 @@ public class EmailServiceImpl implements EmailService {
 			helper.setSubject(subject);
 			helper.setText(content);
 
-			helper.addAttachment(file.getOriginalFilename(), new ByteArrayResource(file.getBytes()));
+			helper.addAttachment(fileName, new ByteArrayResource(attachmentBytes));
 
 			mailSender.send(message);
 
-			log.info("✅ Email with attachment sent | to={}, file={}", to, file.getOriginalFilename());
+			log.info("✅ Email with attachment sent | to={}, file={}", to, fileName);
 
 		} catch (Exception e) {
-
-			log.error("❌ Failed to send email with attachment | to={}, reason={}", to, e.getMessage(), e);
-
-			throw new RuntimeException("Email with attachment failed");
+			log.error("❌ Failed to send attachment email | to={}, reason={}", to, e.getMessage(), e);
+			throw new RuntimeException("Attachment email failed");
 		}
 	}
+
 }

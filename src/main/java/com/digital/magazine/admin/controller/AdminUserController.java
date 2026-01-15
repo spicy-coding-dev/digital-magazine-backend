@@ -1,5 +1,7 @@
 package com.digital.magazine.admin.controller;
 
+import java.io.IOException;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -52,12 +54,22 @@ public class AdminUserController {
 	@PostMapping(value = "/send-email", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse<String>> sendEmailToUsers(@RequestParam AccountStatus status,
 			@RequestParam String subject, @RequestParam String content,
-			@RequestPart(required = false) MultipartFile file) {
+			@RequestParam(required = false) MultipartFile file) throws IOException {
 
-		log.info("📧 Admin triggered bulk email | status={}, subject={}", status, subject);
+		byte[] attachmentBytes = null;
+		String fileName = null;
 
-		service.sendBulkMailByStatus(status, subject, content, file);
+		if (file != null && !file.isEmpty()) {
+			attachmentBytes = file.getBytes(); // 🔥 IMPORTANT
+			fileName = file.getOriginalFilename();
+		}
+
+		log.info("📧 Admin triggered bulk email | status={}, subject={}, filePresent={}", status, subject,
+				file != null && !file.isEmpty());
+
+		service.sendBulkMailByStatus(status, subject, content, attachmentBytes, fileName);
 
 		return ResponseEntity.ok(new ApiResponse<>("Email sent successfully to " + status + " users"));
 	}
+
 }

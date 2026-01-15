@@ -18,7 +18,6 @@ import com.digital.magazine.user.enums.AccountStatus;
 import com.digital.magazine.user.repository.UserRepository;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,11 +88,12 @@ public class AdminUserServiceImpl implements AdminUserService {
 
 	@Override
 	@Async("taskExecutor")
-	public void sendBulkMailByStatus(AccountStatus status, String subject, String content, MultipartFile file) {
+	public void sendBulkMailByStatus(AccountStatus status, String subject, String content, byte[] attachmentBytes,
+			String fileName) {
 
 		log.info("🔍 Fetching users with status={}", status);
 
-		List<User> users = userRepo.findByStatus(status);
+		List<User> users = userRepo.findByStatusAndRole(status, Role.USER);
 
 		if (users.isEmpty()) {
 			log.warn("⚠️ No users found with status={}", status);
@@ -105,18 +105,18 @@ public class AdminUserServiceImpl implements AdminUserService {
 		for (User user : users) {
 			try {
 
-				log.debug("📨 Sending mail to {}", user.getEmail());
+				if (attachmentBytes != null) {
+					log.debug("📎 Sending mail WITH attachment to {}", user.getEmail());
 
-				if (file != null && !file.isEmpty()) {
-					emailService.sendMailWithAttachment(user.getEmail(), subject, content, file);
+					emailService.sendMailWithAttachment(user.getEmail(), subject, content, attachmentBytes, fileName);
 				} else {
+					log.debug("📨 Sending normal mail to {}", user.getEmail());
 					emailService.sendEmail(user.getEmail(), subject, content);
 				}
 
 				log.info("✅ Mail sent | email={}, status={}", user.getEmail(), status);
 
 			} catch (Exception e) {
-
 				log.error("❌ Failed to send mail | email={}, reason={}", user.getEmail(), e.getMessage(), e);
 			}
 		}

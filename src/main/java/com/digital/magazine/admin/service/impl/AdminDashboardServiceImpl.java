@@ -3,8 +3,8 @@ package com.digital.magazine.admin.service.impl;
 import org.springframework.stereotype.Service;
 
 import com.digital.magazine.admin.dto.DashboardStatsDto;
-import com.digital.magazine.admin.repository.BookRepository;
 import com.digital.magazine.admin.service.AdminDashboardService;
+import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.user.enums.AccountStatus;
 import com.digital.magazine.user.repository.UserRepository;

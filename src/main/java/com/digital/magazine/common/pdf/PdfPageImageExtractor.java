@@ -10,9 +10,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.digital.magazine.admin.entity.BookContentBlock;
-import com.digital.magazine.admin.entity.Books;
-import com.digital.magazine.admin.repository.BookContentBlockRepository;
+import com.digital.magazine.book.entity.BookContentBlock;
+import com.digital.magazine.book.entity.Books;
+import com.digital.magazine.book.repository.BookContentBlockRepository;
 import com.digital.magazine.common.enums.ContentType;
 import com.digital.magazine.common.file.SimpleMultipartFile;
 import com.digital.magazine.common.storage.SupabaseStorageService;

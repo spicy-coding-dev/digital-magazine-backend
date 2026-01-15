@@ -70,6 +70,12 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage()));
 	}
 
+	@ExceptionHandler(InvalidStatusTransitionException.class)
+	public ResponseEntity<ApiResponse<String>> handleInvalidStatusTransition(InvalidStatusTransitionException ex) {
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
 	// ✅ User not found
 	@ExceptionHandler(UserNotFoundException.class)
 	public ResponseEntity<ApiResponse<String>> handleUserNotFound(UserNotFoundException ex) {
@@ -169,6 +175,39 @@ public class GlobalExceptionHandler {
 		log.warn("📭 No books response sent to user");
 
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage()));
+	}
+
+	@ExceptionHandler(FileDeletionException.class)
+	public ResponseEntity<ApiResponse<String>> handleFileDeletionError(FileDeletionException ex) {
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(InvalidFileException.class)
+	public ResponseEntity<ApiResponse<String>> handleInvalidFile(InvalidFileException ex) {
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(FileUploadException.class)
+	public ResponseEntity<ApiResponse<String>> handleFileUpload(FileUploadException ex) {
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(PdfExtractionException.class)
+	public ResponseEntity<ApiResponse<String>> handlePdfError(PdfExtractionException ex) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(InvalidCategoryException.class)
+	public ResponseEntity<ApiResponse<String>> handleCategoryError(InvalidCategoryException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(InvalidStatusException.class)
+	public ResponseEntity<ApiResponse<String>> handleStatusError(InvalidStatusException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
 	}
 
 	// 🔴 FINAL catch-all (never expose internal error)
