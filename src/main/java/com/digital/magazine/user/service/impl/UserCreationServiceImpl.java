@@ -21,12 +21,14 @@ import com.digital.magazine.user.enums.AccountStatus;
 import com.digital.magazine.user.repository.UserRepository;
 import com.digital.magazine.user.service.UserCreationService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserCreationServiceImpl implements UserCreationService {
 
 	private final UserRepository userRepository;
@@ -68,9 +70,12 @@ public class UserCreationServiceImpl implements UserCreationService {
 			throw new EmailAlreadyRegisteredException("இந்த மொபைல் எண் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது");
 		}
 
+		String tempPassword = UUID.randomUUID().toString();
+
 		User user = User.builder().name(dto.getName()).email(dto.getEmail()).mobile(dto.getMobile())
 				.country(dto.getCountry()).state(dto.getState()).district(dto.getDistrict()).role(targetRole)
-				.status(AccountStatus.PENDING).emailVerified(false).createdAt(LocalDateTime.now()).build();
+				.status(AccountStatus.PENDING).password(passwordEncoder.encode(tempPassword)).emailVerified(false)
+				.createdAt(LocalDateTime.now()).build();
 
 		userRepository.save(user);
 

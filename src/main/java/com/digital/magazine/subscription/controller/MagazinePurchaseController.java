@@ -13,14 +13,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/v1/magazines")
+@RequestMapping("/api/v1/subscription")
 @RequiredArgsConstructor
 @Slf4j
 public class MagazinePurchaseController {
 
 	private final MagazinePurchaseService service;
 
-	@PostMapping("/{bookId}/buy")
+	@PostMapping("magazine/{bookId}/buy")
 	public ResponseEntity<?> buySingle(@PathVariable Long bookId, Authentication auth) {
 
 		log.info("Single magazine buy | user={} | book={}", auth.getName(), bookId);

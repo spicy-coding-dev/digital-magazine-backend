@@ -13,8 +13,9 @@ public enum HomeSectionConfig {
 	LATEST_ALL("Latest", null, 6),
 
 	// 🔥 SECTION 2: Category-wise
-	HISTORY("வரலாறு", BookCategory.HISTORY, 2), SOCIETY("சமூகம்", BookCategory.SOCIETY, 4),
-	LITERATURE("இலக்கியம்", BookCategory.LITERATURE, 3), CULTURE("பண்பாடு", BookCategory.CULTURE, 2);
+	HISTORY("வரலாறு", BookCategory.HISTORY, 4), SOCIETY("சமூகம்", BookCategory.SOCIETY, 1),
+	LITERATURE("இலக்கியம்", BookCategory.LITERATURE, 3), CULTURE("பண்பாடு", BookCategory.CULTURE, 1),
+	ENVIRONMENT("சூழலியல்", BookCategory.ENVIRONMENT, 1), EDITORIAL("தலையங்கம்", BookCategory.EDITORIAL, 1);
 
 	private final String title; // UI title
 	private final BookCategory category; // null = ALL

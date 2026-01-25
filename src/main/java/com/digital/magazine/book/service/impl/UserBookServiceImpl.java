@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.enums.HomeSectionConfig;
-import com.digital.magazine.book.repository.BookContentBlockRepository;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.book.service.UserBookService;
 import com.digital.magazine.user.dto.BookSummaryDto;
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 public class UserBookServiceImpl implements UserBookService {
 
 	private final BookRepository bookRepo;
-	private final BookContentBlockRepository blockRepo;
 
 	@Override
 	public Map<String, List<BookSummaryDto>> getHomePage() {
@@ -52,7 +50,8 @@ public class UserBookServiceImpl implements UserBookService {
 	private BookSummaryDto toSummary(Books b) {
 		return BookSummaryDto.builder().id(b.getId()).title(b.getTitle()).subTitle(b.getSubtitle())
 				.author(b.getAuthor()).category(b.getCategory().getTamilLabel()).coverImage(b.getCoverImagePath())
-				.magazineNo(b.getMagazineNo()).status(b.getStatus()).build();
+				.magazineNo(b.getMagazineNo()).status(b.getStatus())
+				.uploadAt(b.getUpdatedAt() != null ? b.getUpdatedAt() : b.getCreatedAt()).build();
 	}
 
 }

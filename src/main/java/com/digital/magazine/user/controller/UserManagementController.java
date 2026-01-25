@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/manage")
 @RequiredArgsConstructor
 public class UserManagementController {
 
@@ -28,7 +28,6 @@ public class UserManagementController {
 
 	// 🔹 SUPER ADMIN → CREATE ADMIN
 	@PostMapping("/create-admin")
-	@PreAuthorize("hasRole('SUPER_ADMIN')")
 	public ResponseEntity<ApiResponse<String>> createAdmin(@RequestBody @Valid CreateUserDto dto, Authentication auth) {
 
 		log.info("SUPER_ADMIN [{}] requested ADMIN creation for email={}", auth.getName(), dto.getEmail());
@@ -43,7 +42,6 @@ public class UserManagementController {
 
 	// 🔹 ADMIN → CREATE USER
 	@PostMapping("/create-user")
-	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<String>> createUser(@RequestBody @Valid CreateUserDto dto, Authentication auth) {
 
 		log.info("ADMIN [{}] requested USER creation for email={}", auth.getName(), dto.getEmail());

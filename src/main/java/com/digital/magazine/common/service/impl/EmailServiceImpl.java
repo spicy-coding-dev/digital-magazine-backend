@@ -55,6 +55,32 @@ public class EmailServiceImpl implements EmailService {
 
 	@Async("taskExecutor")
 	@Override
+	public void sendVerificationEmailFromAdminAndSuper(String toEmail, String token) {
+
+		log.info("Sending verification email to {}", toEmail);
+
+		try {
+			String verificationLink = backendBaseUrl + "/admin/verify-email?token=" + token;
+
+			String subject = "📩 உங்கள் மின்னஞ்சல் உறுதிப்படுத்தல்";
+
+			String body = "வணக்கம்,\n\n" + "நீங்கள் எங்கள் டிஜிட்டல் இதழ் தளத்தில் பதிவு செய்ததற்கு நன்றி.\n\n"
+					+ "உங்கள் மின்னஞ்சலை உறுதிப்படுத்த கீழே உள்ள இணைப்பை கிளிக் செய்யவும்:\n\n" + verificationLink
+					+ "\n\n" + "இந்த இணைப்பு 15 நிமிடங்கள் மட்டுமே செல்லுபடியாகும்.\n\n"
+					+ "நீங்கள் இந்த பதிவு செய்யவில்லை என்றால், இந்த மின்னஞ்சலை பொருட்படுத்த வேண்டாம்.\n\n" + "நன்றி,\n"
+					+ "டிஜிட்டல் தமிழ் இதழ் குழு";
+
+			sendEmail(toEmail, subject, body);
+
+			log.info("Verification email sent successfully to {}", toEmail);
+
+		} catch (Exception e) {
+			log.error("Failed to send verification email to {}", toEmail, e);
+		}
+	}
+
+	@Async("taskExecutor")
+	@Override
 	public void sendAdminVerificationEmail(String toEmail, String token) {
 
 		log.info("📧 Sending admin verification email to {}", toEmail);

@@ -5,6 +5,6 @@ import com.digital.magazine.user.entity.User;
 
 public interface AccessService {
 
-//	public boolean canAccessBook(User user, Books book);
+	public boolean canAccessBook(User user, Books book);
 
 }

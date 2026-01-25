@@ -21,17 +21,17 @@ public class AccessServiceImpl implements AccessService {
 	private final UserSubscriptionRepository userSubscriptionRepo;
 	private final MagazinePurchaseRepository magazinePurchaseRepo;
 
-//	@Override
-//	public boolean canAccessBook(User user, Books book) {
-//
-//		boolean hasDigital = userSubscriptionRepo.existsByUserAndPlan_TypeAndStatus(user, SubscriptionType.DIGITAL,
-//				SubscriptionStatus.ACTIVE);
-//
-//		boolean hasSingle = magazinePurchaseRepo.existsByUserAndBook(user, book);
-//
-//		log.info("Access check | user={} | book={} | digital={} | single={}", user.getEmail(), book.getId(), hasDigital,
-//				hasSingle);
-//
-//		return hasDigital || hasSingle;
-//	}
+	@Override
+	public boolean canAccessBook(User user, Books book) {
+
+		boolean hasDigital = userSubscriptionRepo.existsByUserAndPlan_TypeAndStatus(user, SubscriptionType.DIGITAL,
+				SubscriptionStatus.ACTIVE);
+
+		boolean hasSingle = magazinePurchaseRepo.existsByUserAndBook(user, book);
+
+		log.info("Access check | user={} | book={} | digital={} | single={}", user.getEmail(), book.getId(), hasDigital,
+				hasSingle);
+
+		return hasDigital || hasSingle;
+	}
 }

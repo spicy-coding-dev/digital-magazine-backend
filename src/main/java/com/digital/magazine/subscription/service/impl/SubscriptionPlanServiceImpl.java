@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.springframework.stereotype.Service;
 
+import com.digital.magazine.common.exception.SubscriptionPlanNotFoundException;
 import com.digital.magazine.subscription.dto.SubscriptionPlanDto;
 import com.digital.magazine.subscription.dto.SubscriptionUpdateRequest;
 import com.digital.magazine.subscription.entity.SubscriptionPlan;
@@ -49,17 +50,17 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 	public SubscriptionPlanDto updatePlan(String planCode, SubscriptionUpdateRequest request) {
 
 		SubscriptionPlan plan = repo.findByPlanCode(planCode)
-				.orElseThrow(() -> new RuntimeException("Subscription plan not found"));
+				.orElseThrow(() -> new SubscriptionPlanNotFoundException("சந்தா திட்டம் கிடைக்கவில்லை"));
 
 		if (request.getPlanCode() != null)
 			plan.setPlanCode(request.getPlanCode());
-		
+
 		if (request.getName() != null)
 			plan.setName(request.getName());
 
 		if (request.getPrice() != null)
 			plan.setPrice(request.getPrice());
-		
+
 		if (request.getType() != null)
 			plan.setType(request.getType());
 

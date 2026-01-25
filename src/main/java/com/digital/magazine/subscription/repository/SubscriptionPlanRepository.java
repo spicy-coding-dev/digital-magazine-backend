@@ -10,8 +10,8 @@ import com.digital.magazine.subscription.enums.SubscriptionType;
 
 public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPlan, Long> {
 
-    Optional<SubscriptionPlan> findByPlanCode(String planCode);
+	Optional<SubscriptionPlan> findByPlanCode(String planCode);
 
-    List<SubscriptionPlan> findByTypeAndActiveTrueOrderByPriceAsc(SubscriptionType type);
-    
+	List<SubscriptionPlan> findByTypeAndActiveTrueOrderByPriceAsc(SubscriptionType type);
+
 }

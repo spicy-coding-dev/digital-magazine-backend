@@ -1,5 +1,6 @@
 package com.digital.magazine.user.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.digital.magazine.common.enums.BookStatus;
@@ -30,5 +31,7 @@ public class BookSummaryDto {
 
 	// 🔥 IMPORTANT: Entity illa, plain String list
 	private List<String> tags;
+
+	private LocalDateTime uploadAt;
 
 }

@@ -8,7 +8,7 @@ import com.digital.magazine.user.dto.UserBookFullDto;
 
 public interface PublicBookService {
 
-	public UserBookFullDto getFullBook(Long bookId);
+//	public UserBookFullDto getFullBook(Long bookId);
 
 	public Map<String, List<BookSummaryDto>> getHomeBooks();
 

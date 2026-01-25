@@ -74,8 +74,8 @@ public class Books {
 	@JoinTable(name = "book_tags", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
 	private Set<Tag> tags = new HashSet<>();
 
-	@OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-	private Set<BookContentBlock> contentBlocks = new HashSet<>();
+	@Column(nullable = false)
+	private String pdfPath; // PRIVATE bucket path ONLY
 
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;

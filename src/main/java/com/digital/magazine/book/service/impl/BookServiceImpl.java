@@ -18,7 +18,6 @@ import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
 import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.entity.Tag;
-import com.digital.magazine.book.repository.BookContentBlockRepository;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.book.repository.TagRepository;
 import com.digital.magazine.book.service.BookService;
@@ -32,7 +31,6 @@ import com.digital.magazine.common.exception.InvalidStatusException;
 import com.digital.magazine.common.exception.InvalidStatusTransitionException;
 import com.digital.magazine.common.exception.NoBooksFoundException;
 import com.digital.magazine.common.exception.UserNotFoundException;
-import com.digital.magazine.common.pdf.PdfPageImageExtractor;
 import com.digital.magazine.common.storage.SupabaseStorageService;
 import com.digital.magazine.user.dto.BookSummaryDto;
 import com.digital.magazine.user.entity.User;
@@ -49,8 +47,6 @@ import lombok.extern.slf4j.Slf4j;
 public class BookServiceImpl implements BookService {
 
 	private final BookRepository bookRepo;
-	private final BookContentBlockRepository blockRepo;
-	private final SupabaseStorageService fileService; // Supabase uploader
 	private final UserRepository userRepository;
 	private final TagRepository tagRepo;
 	private final SupabaseStorageService supabaseStorageService;
@@ -61,42 +57,33 @@ public class BookServiceImpl implements BookService {
 	public void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, MultipartFile contentPdf,
 			UserDetails userDetails) {
 
-		log.info("📘 Book upload started by admin={}", userDetails.getUsername());
+		String adminEmail = userDetails.getUsername();
+		log.info("📘 [BOOK UPLOAD START] admin={}", adminEmail);
 
-		// 1️⃣ Upload cover image
-		String coverImageUrl;
-		try {
-			coverImageUrl = fileService.uploadFile(coverImage, "books/covers");
-		} catch (Exception e) {
-			log.error("❌ Cover image upload failed", e);
-			throw new FileUploadException("கவர் படத்தை பதிவேற்ற முடியவில்லை", e);
-		}
+		User admin = userRepository.findByEmail(adminEmail).orElseThrow(() -> {
+			log.error("❌ Admin not found email={}", adminEmail);
+			return new UserNotFoundException("Admin not found");
+		});
 
-		String email = userDetails.getUsername();
+		// 1️⃣ Cover Image
+		log.info("🖼️ Uploading cover image...");
+		String coverImageUrl = supabaseStorageService.uploadPublicFile(coverImage, "books/covers");
 
-		User admin = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("Admin not found"));
+		// 2️⃣ PDF
+		log.info("📄 Uploading book PDF...");
+		String pdfPath = supabaseStorageService.uploadPrivateFile(contentPdf, "books/pdfs");
 
-		// 🔁 Tamil string → Enum conversion
 		BookCategory category = BookCategory.fromTamil(dto.getCategory());
+		Set<Tag> tags = resolveTags(dto.getTags());
 
-		Set<Tag> tagEntities = resolveTags(dto.getTags());
-
-		// 2️⃣ Save book
-		Books book = Books.builder().title(dto.getTitle()).subtitle(dto.getSubtitle()).category(category)
-				.author(dto.getAuthor()).magazineNo(dto.getMagazineNo()).tags(tagEntities) // 👈
-				// backend
-				// decide
-				.paid(dto.getPaid()).price(dto.getPaid() ? dto.getPrice() : null).status(dto.getStatus())
-				.coverImagePath(coverImageUrl).createdBy(admin).createdAt(LocalDateTime.now()).build();
+		Books book = Books.builder().title(dto.getTitle()).subtitle(dto.getSubtitle()).author(dto.getAuthor())
+				.magazineNo(dto.getMagazineNo()).category(category).tags(tags).paid(dto.getPaid())
+				.price(dto.getPaid() ? dto.getPrice() : null).status(dto.getStatus()).coverImagePath(coverImageUrl)
+				.pdfPath(pdfPath).createdBy(admin).createdAt(LocalDateTime.now()).build();
 
 		bookRepo.save(book);
 
-		log.info("✅ Book saved with id={}", book.getId());
-
-		// 3️⃣ Extract PDF content
-		extractPdfContent(book, contentPdf);
-
-		log.info("🎉 Book upload completed successfully. bookId={}", book.getId());
+		log.info("🎉 [BOOK UPLOAD SUCCESS] bookId={} admin={}", book.getId(), adminEmail);
 	}
 
 	@Override
@@ -218,46 +205,56 @@ public class BookServiceImpl implements BookService {
 	@Override
 	public String updateCoverImage(Long bookId, MultipartFile file, Authentication auth) {
 
-		// 🔐 Admin validate
-		userRepository.findByEmail(auth.getName())
-				.orElseThrow(() -> new UserNotFoundException("நிர்வாகி காணப்படவில்லை"));
+		String adminEmail = auth.getName();
 
-		// 📘 Book fetch
-		Books book = bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("புத்தகம் கிடைக்கவில்லை"));
+		log.info("🖼️ [COVER UPDATE START] bookId={} by={}", bookId, adminEmail);
 
-		// ❌ Empty file check
+		// 🔐 1️⃣ Admin validation
+		userRepository.findByEmail(adminEmail).orElseThrow(() -> {
+			log.error("❌ Admin not found | email={}", adminEmail);
+			return new UserNotFoundException("நிர்வாகி காணப்படவில்லை");
+		});
+
+		// 📘 2️⃣ Fetch book
+		Books book = bookRepo.findById(bookId).orElseThrow(() -> {
+			log.error("❌ Book not found | bookId={}", bookId);
+			return new NoBooksFoundException("புத்தகம் கிடைக்கவில்லை");
+		});
+
+		// ❌ 3️⃣ Empty file check
 		if (file == null || file.isEmpty()) {
-			log.warn("Empty cover image upload attempt | bookId={}", bookId);
+			log.warn("⚠️ Empty cover image upload | bookId={}", bookId);
 			throw new InvalidFileException("கவர் படம் அவசியம்");
 		}
 
-		// 🧹 STEP 1: Delete old cover image
+		// 🧹 4️⃣ Delete old cover image (PUBLIC BUCKET)
 		String oldImageUrl = book.getCoverImagePath();
 		if (oldImageUrl != null && !oldImageUrl.isBlank()) {
-			log.info("🧹 Deleting old cover image | bookId={} | url={}", bookId, oldImageUrl);
+			log.info("🧹 [OLD COVER DELETE] bookId={} url={}", bookId, oldImageUrl);
 			try {
-				deleteSupabaseFileSafely(book.getCoverImagePath(), "Cover image", bookId);
+				supabaseStorageService.deletePublicFile(oldImageUrl);
 			} catch (Exception e) {
-				log.error("❌ Failed to delete old cover image | bookId={}", bookId, e);
+				log.error("❌ Old cover delete failed | bookId={}", bookId, e);
 				throw new FileDeletionException("பழைய கவர் படத்தை நீக்க முடியவில்லை", e);
 			}
 		}
 
-		// 🔼 STEP 2: Upload new image
+		// 🔼 5️⃣ Upload new cover image (PUBLIC BUCKET)
 		String newImageUrl;
 		try {
-			newImageUrl = supabaseStorageService.uploadFile(file, "books/covers");
+			log.info("📤 Uploading new cover image | bookId={}", bookId);
+			newImageUrl = supabaseStorageService.uploadPublicFile(file, "books/covers");
 		} catch (Exception e) {
-			log.error("❌ Failed to upload new cover image | bookId={}", bookId, e);
+			log.error("❌ New cover upload failed | bookId={}", bookId, e);
 			throw new FileUploadException("புதிய கவர் படத்தை பதிவேற்ற முடியவில்லை", e);
 		}
 
-		// 🔄 STEP 3: Update book
+		// 🔄 6️⃣ Update DB
 		book.setCoverImagePath(newImageUrl);
 		book.setUpdatedAt(LocalDateTime.now());
 		bookRepo.save(book);
 
-		log.info("✅ Cover image updated | bookId={} | newUrl={}", bookId, newImageUrl);
+		log.info("✅ [COVER UPDATE SUCCESS] bookId={} newUrl={}", bookId, newImageUrl);
 
 		return newImageUrl;
 	}
@@ -296,51 +293,30 @@ public class BookServiceImpl implements BookService {
 
 		Books book = bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("Book not found"));
 
-		log.warn("⚠️ BOOK DELETE START | bookId={} | by={}", bookId, admin.getEmail());
+		log.warn("⚠️ [BOOK DELETE START] bookId={} by={}", bookId, admin.getEmail());
 
-		// 🧹 1️⃣ Delete analytics data FIRST
-		log.info("🧹 Deleting guest article views | bookId={}", bookId);
+		// 1️⃣ Analytics cleanup
+		log.info("🧹 Deleting guest views | bookId={}", bookId);
 		guestArticleRepo.deleteByArticleId(bookId);
 
-		log.info("🧹 Deleting user article views | bookId={}", bookId);
+		log.info("🧹 Deleting user views | bookId={}", bookId);
 		articleViewRepo.deleteByArticleId(bookId);
 
-		// 🧹 2️⃣ Delete content block images
-		blockRepo.findByBookId(bookId).forEach(block -> {
-			if (block.getImageUrl() != null) {
-				deleteSupabaseFileSafely(block.getImageUrl(), "Content image", bookId);
-			}
-		});
+		// ❌ OLD content blocks logic REMOVE (no OCR blocks anymore)
 
-		// 🧹 3️⃣ Delete cover image
-		deleteSupabaseFileSafely(book.getCoverImagePath(), "Cover image", bookId);
+		// 2️⃣ Delete COVER image (PUBLIC)
+		supabaseStorageService.deletePublicFile(book.getCoverImagePath());
 
-		// 🧹 4️⃣ Clear relations
+		// 3️⃣ Delete PDF (PRIVATE) 🔥
+		supabaseStorageService.deletePrivateFile(book.getPdfPath());
+
+		// 4️⃣ Clear relations
 		book.getTags().clear();
-		book.getContentBlocks().clear();
 
-		// 🗑️ 5️⃣ Delete book
+		// 5️⃣ Delete book record
 		bookRepo.delete(book);
 
-		log.info("✅ BOOK DELETE COMPLETED | bookId={}", bookId);
-	}
-
-	private void deleteSupabaseFileSafely(String fileUrl, String label, Long bookId) {
-
-		if (fileUrl == null || fileUrl.isBlank()) {
-			return;
-		}
-
-		try {
-			log.info("🧹 Deleting {} from Supabase | bookId={} | url={}", label, bookId, fileUrl);
-
-			supabaseStorageService.deleteFileFromSupabase(fileUrl);
-
-		} catch (Exception e) {
-			log.error("❌ Failed to delete {} | bookId={} | url={}", label, bookId, fileUrl, e);
-
-			throw new FileDeletionException("Supabase-ல் உள்ள கோப்புகளை நீக்க முடியவில்லை");
-		}
+		log.info("✅ [BOOK DELETE COMPLETED] bookId={}", bookId);
 	}
 
 	// 🔐 STATUS RULE VALIDATION (Tamil messages)
@@ -376,24 +352,6 @@ public class BookServiceImpl implements BookService {
 				.tags(book.getTags().stream().map(Tag::getName).toList())
 
 				.build();
-	}
-
-	// 🔥 PDF extraction
-	private void extractPdfContent(Books book, MultipartFile pdf) {
-
-		log.info("📄 PDF extraction started for bookId={}", book.getId());
-
-		try {
-			PdfPageImageExtractor extractor = new PdfPageImageExtractor(book, blockRepo, fileService);
-
-			extractor.extract(pdf); // ✅ HERE IT IS CALLED
-
-			log.info("✅ PDF extracted page-wise successfully");
-
-		} catch (Exception e) {
-			log.error("❌ PDF extraction failed", e);
-			throw new RuntimeException("PDF extraction failed", e);
-		}
 	}
 
 	private Set<Tag> resolveTags(List<String> tags) {

@@ -169,6 +169,14 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(ex.getMessage()));
 	}
 
+	@ExceptionHandler(AddressAccessDeniedException.class)
+	public ResponseEntity<ApiResponse<String>> handleAddressAccess(AddressAccessDeniedException ex) {
+
+		log.warn("🚫 AddressAccessDeniedException: {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(ex.getMessage()));
+	}
+
 	@ExceptionHandler(NoBooksFoundException.class)
 	public ResponseEntity<ApiResponse<Object>> handleNoBooks(NoBooksFoundException ex) {
 
@@ -195,11 +203,6 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(ex.getMessage(), null));
 	}
 
-	@ExceptionHandler(PdfExtractionException.class)
-	public ResponseEntity<ApiResponse<String>> handlePdfError(PdfExtractionException ex) {
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(ex.getMessage(), null));
-	}
-
 	@ExceptionHandler(InvalidCategoryException.class)
 	public ResponseEntity<ApiResponse<String>> handleCategoryError(InvalidCategoryException ex) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
@@ -208,6 +211,30 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(InvalidStatusException.class)
 	public ResponseEntity<ApiResponse<String>> handleStatusError(InvalidStatusException ex) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(DuplicateAddressException.class)
+	public ResponseEntity<ApiResponse<String>> handleStatusError(DuplicateAddressException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler({ DeliveryNotFoundException.class, SubscriptionPlanNotFoundException.class })
+	public ResponseEntity<ApiResponse<String>> handleStatusError(RuntimeException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler({ FreeBookException.class, BookNotPurchasableException.class, AlreadyPurchasedException.class,
+			DigitalSubscriptionExistsException.class, AddressNotRequiredException.class })
+	public ResponseEntity<ApiResponse<String>> handlePurchaseErrors(RuntimeException ex) {
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler({ SubscriptionNotAllowedException.class, DuplicateSubscriptionException.class,
+			AddressRequiredException.class })
+	public ResponseEntity<ApiResponse<String>> handleSubscriptionErrors(RuntimeException ex) {
+
+		return ResponseEntity.badRequest().body(new ApiResponse<>(ex.getMessage(), null));
 	}
 
 	// 🔴 FINAL catch-all (never expose internal error)

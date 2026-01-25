@@ -25,11 +25,11 @@ public class PublicBookController {
 
 	private final PublicBookService bookService;
 
-	@GetMapping("/books/{bookId}/full")
-	public ResponseEntity<ApiResponse<UserBookFullDto>> getFullBook(@PathVariable Long bookId) {
-
-		return ResponseEntity.ok(new ApiResponse<>(bookService.getFullBook(bookId)));
-	}
+//	@GetMapping("/books/{bookId}/full")
+//	public ResponseEntity<ApiResponse<UserBookFullDto>> getFullBook(@PathVariable Long bookId) {
+//
+//		return ResponseEntity.ok(new ApiResponse<>(bookService.getFullBook(bookId)));
+//	}
 	
 	@GetMapping("/home/books")
 	public ResponseEntity<ApiResponse<Map<String, List<BookSummaryDto>>>> getHomeBooks() {

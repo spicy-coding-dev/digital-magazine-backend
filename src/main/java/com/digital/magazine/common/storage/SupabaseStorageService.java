@@ -1,8 +1,5 @@
 package com.digital.magazine.common.storage;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,18 +38,18 @@ public class SupabaseStorageService {
 	@Value("${supabase.key}")
 	private String supabaseKey;
 
-	@Value("${supabase.bucket}")
-	private String bucketName;
+	@Value("${supabase.bucket.public}")
+	private String publicBucketName;
+
+	@Value("${supabase.bucket.private}")
+	private String privateBucketName;
 
 	public SupabaseStorageService(WebClient.Builder builder) {
 
-		HttpClient httpClient = HttpClient.create()
-				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+		HttpClient httpClient = HttpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
 				.responseTimeout(Duration.ofSeconds(15));
 
-		this.webClient = builder
-				.clientConnector(new ReactorClientHttpConnector(httpClient))
-				.build();
+		this.webClient = builder.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
 	}
 
 	public Mono<String> fetchFile(String url) {
@@ -78,85 +75,142 @@ public class SupabaseStorageService {
 				});
 	}
 
-	public String uploadFile(MultipartFile file, String folder) throws IOException {
-		try {
-			String originalFileName = file.getOriginalFilename();
-			log.info("Uploading file: {}", originalFileName);
+	/* ===================== PUBLIC UPLOAD ===================== */
 
-			String extension = (originalFileName != null && originalFileName.contains("."))
-					? originalFileName.substring(originalFileName.lastIndexOf("."))
+	public String uploadPublicFile(MultipartFile file, String folder) {
+		log.info("📤 [PUBLIC UPLOAD START] file={} folder={}", file.getOriginalFilename(), folder);
+
+		String url = upload(file, folder, publicBucketName, true);
+
+		log.info("✅ [PUBLIC UPLOAD SUCCESS] url={}", url);
+		return url;
+	}
+
+	/* ===================== PRIVATE UPLOAD ===================== */
+
+	public String uploadPrivateFile(MultipartFile file, String folder) {
+		log.info("🔐 [PRIVATE UPLOAD START] file={} folder={}", file.getOriginalFilename(), folder);
+
+		String path = upload(file, folder, privateBucketName, false);
+
+		log.info("✅ [PRIVATE UPLOAD SUCCESS] path={}", path);
+		return path;
+	}
+
+	/* ===================== CORE UPLOAD ===================== */
+
+	private String upload(MultipartFile file, String folder, String bucket, boolean isPublic) {
+
+		try {
+			String originalName = file.getOriginalFilename();
+
+			String extension = (originalName != null && originalName.contains("."))
+					? originalName.substring(originalName.lastIndexOf("."))
 					: "";
 
-			String uniqueFileName = UUID.randomUUID().toString() + "_"
+			String uniqueFileName = UUID.randomUUID() + "_"
 					+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + extension;
-
-			log.debug("Generated unique file name: {}", uniqueFileName);
 
 			String filePath = folder + "/" + uniqueFileName;
 
-			String url = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + filePath;
+			String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + filePath;
 
-			webClient.put().uri(url).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey)
-					.header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+			log.info("📤 Uploading to Supabase | bucket={} path={} method={}", bucket, filePath,
+					isPublic ? "PUT" : "POST");
+
+			WebClient.RequestBodySpec request = isPublic ? webClient.put().uri(uploadUrl)
+					: webClient.post().uri(uploadUrl); // 🔥 KEY FIX
+
+			request.header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).header("x-upsert", "true")
+					.header(HttpHeaders.CONTENT_TYPE,
+							file.getContentType() != null ? file.getContentType() : "application/octet-stream")
 					.bodyValue(new InputStreamResource(file.getInputStream())).retrieve().bodyToMono(String.class)
 					.block();
 
-			log.info("File uploaded successfully: {}", filePath);
+			if (isPublic) {
+				return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + filePath;
+			}
 
-			return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + filePath;
+			return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + filePath;
 
-		} catch (IOException e) {
-			log.error("Error uploading file: {}", file.getOriginalFilename(), e);
-			throw new RuntimeException("Error uploading file: " + file.getOriginalFilename(), e);
+		} catch (Exception e) {
+			log.error("❌ [UPLOAD FAILED] bucket={} file={}", bucket, file.getOriginalFilename(), e);
+			throw new RuntimeException("Supabase upload failed", e);
 		}
 	}
 
-	public void deleteFileFromSupabase(String fileUrl) {
+	public void deletePublicFile(String publicUrl) {
 
-		if (fileUrl == null || fileUrl.isEmpty())
+		if (publicUrl == null || publicUrl.isBlank()) {
+			log.warn("⚠️ [PUBLIC DELETE SKIPPED] Empty URL");
 			return;
+		}
 
-		// fileUrl la irundhu relative path extract pannanum
-		// ex:
-		// https://xyz.supabase.co/storage/v1/object/public/mybucket/userProfilePics/abc.jpg
-		String relativePath = fileUrl.substring(fileUrl.indexOf(bucketName) + bucketName.length() + 1);
-
-		String url = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + relativePath;
-
-		webClient.delete().uri(url).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
-				.bodyToMono(Void.class).block();
-
-		log.info("Deleting file from Supabase: {}", fileUrl);
-
-	}
-
-	// Generate signed URL for single file
-	public String generateSignedUrl(String publicUrl, int expiryInSeconds) {
-
-		log.info("Generating signed URL for file: {}", publicUrl);
-
-		if (publicUrl == null || publicUrl.isEmpty())
-			return "";
 		try {
-			String relativePath = publicUrl.replace(supabaseUrl + "/storage/v1/object/public/" + bucketName + "/", "");
+			String relativePath = publicUrl
+					.substring(publicUrl.indexOf("/object/public/") + "/object/public/".length());
 
-			// encode path safely except "/"
-			String safePath = URLEncoder.encode(relativePath, StandardCharsets.UTF_8.toString())
-					.replaceAll("\\+", "%20").replaceAll("%2F", "/"); // keep slashes
+			String deleteUrl = supabaseUrl + "/storage/v1/object/" + relativePath;
 
-			String url = supabaseUrl + "/storage/v1/object/sign/" + bucketName + "/" + safePath;
+			log.info("🗑️ [PUBLIC DELETE START] path={}", relativePath);
 
-			Map<String, Object> requestBody = Map.of("expiresIn", expiryInSeconds);
+			webClient.delete().uri(deleteUrl).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
+					.bodyToMono(Void.class).block();
 
-			String signedUrlJson = webClient.post().uri(url).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey)
-					.bodyValue(requestBody).retrieve().bodyToMono(String.class).block();
-
-			JsonNode jsonNode = new ObjectMapper().readTree(signedUrlJson);
-			return supabaseUrl + "/storage/v1" + jsonNode.get("signedURL").asText(); // Full https:// URL
+			log.info("✅ [PUBLIC DELETE SUCCESS] path={}", relativePath);
 
 		} catch (Exception e) {
-			log.error("Error generating signed URL for {}: {}", publicUrl, e.getMessage(), e);
-			throw new RuntimeException("Error generating signed URL " + e.getMessage(), e);
+			log.error("❌ [PUBLIC DELETE FAILED] url={}", publicUrl, e);
+		}
+	}
+
+	public void deletePrivateFile(String filePath) {
+
+		if (filePath == null || filePath.isBlank()) {
+			log.warn("⚠️ [PRIVATE DELETE SKIPPED] Empty path");
+			return;
+		}
+
+		try {
+			String relativePath = filePath.substring(filePath.indexOf("/object/public/") + "/object/public/".length());
+
+			String deleteUrl = supabaseUrl + "/storage/v1/object/" + relativePath;
+
+			log.info("🗑️ [PRIVATE DELETE START] bucket={} path={}", privateBucketName, filePath);
+
+			webClient.delete().uri(deleteUrl).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
+					.bodyToMono(Void.class).block();
+
+			log.info("✅ [PRIVATE DELETE SUCCESS] path={}", filePath);
+
+		} catch (Exception e) {
+			log.error("❌ [PRIVATE DELETE FAILED] bucket={} path={}", privateBucketName, filePath, e);
+		}
+	}
+
+	/* ===================== SIGNED URL ===================== */
+
+	public String generateSignedUrlFromPrivate(String bucket, String filePath, int expirySeconds) {
+
+		log.info("🔐 [SIGNED URL REQUEST] bucket={} path={} expiry={}s", bucket, filePath, expirySeconds);
+
+		try {
+			String signUrl = supabaseUrl + "/storage/v1/object/sign/" + bucket + "/" + filePath;
+
+			Map<String, Object> body = Map.of("expiresIn", expirySeconds);
+
+			String response = webClient.post().uri(signUrl).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey)
+					.bodyValue(body).retrieve().bodyToMono(String.class).block();
+
+			JsonNode json = new ObjectMapper().readTree(response);
+			String signedUrl = supabaseUrl + "/storage/v1" + json.get("signedURL").asText();
+
+			log.info("✅ [SIGNED URL GENERATED]");
+			return signedUrl;
+
+		} catch (Exception e) {
+			log.error("❌ [SIGNED URL FAILED] path={}", filePath, e);
+			throw new RuntimeException("Signed URL generation failed", e);
 		}
 	}
 

@@ -8,7 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.digital.magazine.book.entity.Books;
-import com.digital.magazine.book.repository.BookContentBlockRepository;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.common.enums.BookCategory;
 import com.digital.magazine.common.enums.BookStatus;
@@ -28,23 +27,22 @@ import lombok.extern.slf4j.Slf4j;
 public class PublicBookServiceImpl implements PublicBookService {
 
 	private final BookRepository bookRepo;
-	private final BookContentBlockRepository blockRepo;
 
-	@Override
-	public UserBookFullDto getFullBook(Long bookId) {
-
-		Books book = bookRepo.findById(bookId).filter(b -> b.getStatus() == BookStatus.PUBLISHED)
-				.orElseThrow(() -> new RuntimeException("Book not found"));
-
-		List<BookContentDto> contents = blockRepo.findByBookIdOrderByBlockOrder(bookId).stream()
-				.map(b -> BookContentDto.builder().order(b.getBlockOrder()).type(b.getType()).text(b.getTextContent())
-						.imageUrl(b.getImageUrl()).build())
-				.toList();
-
-		return UserBookFullDto.builder().id(book.getId()).title(book.getTitle()).author(book.getAuthor())
-				.category(book.getCategory().getTamilLabel()).coverImage(book.getCoverImagePath()).paid(book.isPaid())
-				.price(book.getPrice()).contents(contents).build();
-	}
+//	@Override
+//	public UserBookFullDto getFullBook(Long bookId) {
+//
+//		Books book = bookRepo.findById(bookId).filter(b -> b.getStatus() == BookStatus.PUBLISHED)
+//				.orElseThrow(() -> new RuntimeException("Book not found"));
+//
+//		List<BookContentDto> contents = blockRepo.findByBookIdOrderByBlockOrder(bookId).stream()
+//				.map(b -> BookContentDto.builder().order(b.getBlockOrder()).type(b.getType()).text(b.getTextContent())
+//						.imageUrl(b.getImageUrl()).build())
+//				.toList();
+//
+//		return UserBookFullDto.builder().id(book.getId()).title(book.getTitle()).author(book.getAuthor())
+//				.category(book.getCategory().getTamilLabel()).coverImage(book.getCoverImagePath()).paid(book.isPaid())
+//				.price(book.getPrice()).contents(contents).build();
+//	}
 
 	@Override
 	public Map<String, List<BookSummaryDto>> getHomeBooks() {
