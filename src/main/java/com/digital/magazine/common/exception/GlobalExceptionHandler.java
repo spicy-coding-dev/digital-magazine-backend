@@ -237,6 +237,12 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.badRequest().body(new ApiResponse<>(ex.getMessage(), null));
 	}
 
+	@ExceptionHandler(NoShippedDataFoundException.class)
+	public ResponseEntity<ApiResponse<String>> handleNoShippedData(NoShippedDataFoundException ex) {
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage()));
+	}
+
 	// 🔴 FINAL catch-all (never expose internal error)
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<String>> handleGenericException(Exception ex) {

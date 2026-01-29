@@ -1,5 +1,7 @@
 package com.digital.magazine.subscription.service.impl;
 
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
 
 import com.digital.magazine.book.entity.Books;
@@ -24,14 +26,49 @@ public class AccessServiceImpl implements AccessService {
 	@Override
 	public boolean canAccessBook(User user, Books book) {
 
-		boolean hasDigital = userSubscriptionRepo.existsByUserAndPlan_TypeAndStatus(user, SubscriptionType.DIGITAL,
-				SubscriptionStatus.ACTIVE);
+		log.info("🔐 Access check | userId={}, bookId={}", user != null ? user.getId() : "GUEST", book.getId());
 
-		boolean hasSingle = magazinePurchaseRepo.existsByUserAndBook(user, book);
+		// 🔓 Free book – always open
+		if (!book.isPaid()) {
+			return true;
+		}
 
-		log.info("Access check | user={} | book={} | digital={} | single={}", user.getEmail(), book.getId(), hasDigital,
-				hasSingle);
+		// 🚫 Paid book + guest user
+		if (user == null) {
+			return false;
+		}
 
-		return hasDigital || hasSingle;
+		Long userId = user.getId();
+
+		// 🔥 Digital subscription – ALL books open
+		if (hasDigitalSubscription(userId)) {
+			return true;
+		}
+
+		Set<Long> purchasedBooks = magazinePurchaseRepo.findBookIdsByUserId(userId);
+
+		log.info("🛒 Purchased book IDs for user {} = {}", userId, purchasedBooks);
+
+		if (purchasedBooks.contains(book.getId())) {
+			log.info("✅ Individual purchase MATCHED");
+			return true;
+		}
+
+		// 📰 Print subscription – web-la benefit illa
+		return false;
 	}
+
+	private boolean hasDigitalSubscription(Long userId) {
+		return userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(userId, SubscriptionType.DIGITAL,
+				SubscriptionStatus.ACTIVE);
+	}
+//
+//	private boolean hasPrintSubscription(Long userId) {
+//		return userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(userId, SubscriptionType.PRINT,
+//				SubscriptionStatus.ACTIVE);
+//	}
+//
+//	private Set<Long> getIndividualBookIds(Long userId) {
+//		return magazinePurchaseRepo.findBookIdsByUserId(userId);
+//	}
 }

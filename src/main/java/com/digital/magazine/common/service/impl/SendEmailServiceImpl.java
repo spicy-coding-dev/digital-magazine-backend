@@ -25,7 +25,7 @@ public class SendEmailServiceImpl implements SendEmailService {
 	private final UserRepository userRepo;
 	private final MagazinePurchaseRepository magazinePurchaseRepo;
 	private final UserSubscriptionRepository userSubscriptionRepo;
-	private EmailService mailSender;
+	private final EmailService mailSender;
 
 	public void sendBulkMail(MailTargetType targetType, AccountStatus accountStatus, String subject, String content,
 			byte[] attachment, String fileName) {
@@ -37,19 +37,19 @@ public class SendEmailServiceImpl implements SendEmailService {
 		switch (targetType) {
 
 		case ACCOUNT_STATUS -> {
-			emails = userRepo.findEmailsByStatusAndRole(accountStatus, Role.USER);
+			emails = userRepo.findEmailByStatusAndRole(accountStatus, Role.USER);
 		}
 
 		case DIGITAL_SUBSCRIPTION -> {
-			emails = userSubscriptionRepo.findEmailsBySubscriptionType(SubscriptionType.DIGITAL);
+			emails = userSubscriptionRepo.findEmailBySubscriptionType(SubscriptionType.DIGITAL);
 		}
 
 		case PRINT_SUBSCRIPTION -> {
-			emails = userSubscriptionRepo.findEmailsBySubscriptionType(SubscriptionType.PRINT);
+			emails = userSubscriptionRepo.findEmailBySubscriptionType(SubscriptionType.PRINT);
 		}
 
 		case SINGLE_PURCHASE -> {
-			emails = magazinePurchaseRepo.findDistinctBuyerEmails();
+			emails = magazinePurchaseRepo.findDistinctBuyerEmail();
 		}
 
 		default -> throw new IllegalStateException("Invalid mail target");

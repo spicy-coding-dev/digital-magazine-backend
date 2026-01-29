@@ -37,7 +37,7 @@ public class MagazinePurchaseServiceImpl implements MagazinePurchaseService {
 	private final UserSubscriptionRepository userSubscriptionRepo;
 
 	@Override
-	public void purchase(Authentication auth, Long bookId) {
+	public String purchase(Authentication auth, Long bookId) {
 
 		User user = userRepo.findByEmail(auth.getName())
 				.orElseThrow(() -> new UserNotFoundException("பயனர் காணப்படவில்லை"));
@@ -82,6 +82,10 @@ public class MagazinePurchaseServiceImpl implements MagazinePurchaseService {
 		purchaseRepo.save(mp);
 
 		log.info("Single magazine purchased successfully | user={} | book={}", user.getEmail(), book.getId());
+
+		// 🔥 SUCCESS MESSAGE
+		return "நீங்கள் வாங்கிய இதழ் : " + book.getTitle() + " (இதழ் எண் : " + book.getMagazineNo()
+				+ ") வெற்றிகரமாக திறக்கப்பட்டது";
 	}
 
 }

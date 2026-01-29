@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.digital.magazine.book.dto.BookStatusUpdateDto;
+import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
 import com.digital.magazine.book.service.BookService;
 import com.digital.magazine.common.response.ApiResponse;
-import com.digital.magazine.user.dto.BookSummaryDto;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

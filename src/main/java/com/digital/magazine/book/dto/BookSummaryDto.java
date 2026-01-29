@@ -1,4 +1,4 @@
-package com.digital.magazine.user.dto;
+package com.digital.magazine.book.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,6 +31,8 @@ public class BookSummaryDto {
 
 	// 🔥 IMPORTANT: Entity illa, plain String list
 	private List<String> tags;
+
+	private boolean accessible; // 🔓 open or 🔒 locked
 
 	private LocalDateTime uploadAt;
 

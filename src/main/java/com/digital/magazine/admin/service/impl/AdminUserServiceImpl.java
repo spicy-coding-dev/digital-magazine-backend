@@ -86,43 +86,43 @@ public class AdminUserServiceImpl implements AdminUserService {
 		log.info("💾 User status updated successfully | userId={}, newStatus={}", userId, user.getStatus());
 	}
 
-//	@Override
-//	@Async("taskExecutor")
-//	public void sendBulkMailByStatus(AccountStatus status, String subject, String content, byte[] attachmentBytes,
-//			String fileName) {
-//
-//		log.info("🔍 Fetching users with status={}", status);
-//
-//		List<User> users = userRepo.findByStatusAndRole(status, Role.USER);
-//
-//		if (users.isEmpty()) {
-//			log.warn("⚠️ No users found with status={}", status);
-//			return;
-//		}
-//
-//		log.info("👥 Total {} users found for status={}", users.size(), status);
-//
-//		for (User user : users) {
-//			try {
-//
-//				if (attachmentBytes != null) {
-//					log.debug("📎 Sending mail WITH attachment to {}", user.getEmail());
-//
-//					emailService.sendMailWithAttachment(user.getEmail(), subject, content, attachmentBytes, fileName);
-//				} else {
-//					log.debug("📨 Sending normal mail to {}", user.getEmail());
-//					emailService.sendEmail(user.getEmail(), subject, content);
-//				}
-//
-//				log.info("✅ Mail sent | email={}, status={}", user.getEmail(), status);
-//
-//			} catch (Exception e) {
-//				log.error("❌ Failed to send mail | email={}, reason={}", user.getEmail(), e.getMessage(), e);
-//			}
-//		}
-//
-//		log.info("📬 Bulk email process completed for status={}", status);
-//	}
+	@Override
+	@Async("taskExecutor")
+	public void sendBulkMailByStatus(AccountStatus status, String subject, String content, byte[] attachmentBytes,
+			String fileName) {
+
+		log.info("🔍 Fetching users with status={}", status);
+
+		List<User> users = userRepo.findByStatusAndRole(status, Role.USER);
+
+		if (users.isEmpty()) {
+			log.warn("⚠️ No users found with status={}", status);
+			return;
+		}
+
+		log.info("👥 Total {} users found for status={}", users.size(), status);
+
+		for (User user : users) {
+			try {
+
+				if (attachmentBytes != null) {
+					log.debug("📎 Sending mail WITH attachment to {}", user.getEmail());
+
+					emailService.sendMailWithAttachment(user.getEmail(), subject, content, attachmentBytes, fileName);
+				} else {
+					log.debug("📨 Sending normal mail to {}", user.getEmail());
+					emailService.sendEmail(user.getEmail(), subject, content);
+				}
+
+				log.info("✅ Mail sent | email={}, status={}", user.getEmail(), status);
+
+			} catch (Exception e) {
+				log.error("❌ Failed to send mail | email={}, reason={}", user.getEmail(), e.getMessage(), e);
+			}
+		}
+
+		log.info("📬 Bulk email process completed for status={}", status);
+	}
 
 	private AdminUserDto toDto(User user) {
 

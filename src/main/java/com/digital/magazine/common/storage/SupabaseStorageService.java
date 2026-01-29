@@ -131,7 +131,7 @@ public class SupabaseStorageService {
 				return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + filePath;
 			}
 
-			return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + filePath;
+			return filePath;
 
 		} catch (Exception e) {
 			log.error("❌ [UPLOAD FAILED] bucket={} file={}", bucket, file.getOriginalFilename(), e);
@@ -172,9 +172,7 @@ public class SupabaseStorageService {
 		}
 
 		try {
-			String relativePath = filePath.substring(filePath.indexOf("/object/public/") + "/object/public/".length());
-
-			String deleteUrl = supabaseUrl + "/storage/v1/object/" + relativePath;
+			String deleteUrl = supabaseUrl + "/storage/v1/object/" + privateBucketName + "/" + filePath;
 
 			log.info("🗑️ [PRIVATE DELETE START] bucket={} path={}", privateBucketName, filePath);
 

@@ -7,9 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.digital.magazine.book.dto.BookStatusUpdateDto;
+import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
-import com.digital.magazine.user.dto.BookSummaryDto;
 
 public interface BookService {
 	void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, MultipartFile contentPdf,

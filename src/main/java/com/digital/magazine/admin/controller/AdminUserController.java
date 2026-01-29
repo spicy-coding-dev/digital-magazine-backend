@@ -51,25 +51,25 @@ public class AdminUserController {
 		return ResponseEntity.ok(new ApiResponse<>("User block status updated successfully"));
 	}
 
-//	@PostMapping(value = "/send-email", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//	public ResponseEntity<ApiResponse<String>> sendEmailToUsers(@RequestParam AccountStatus status,
-//			@RequestParam String subject, @RequestParam String content,
-//			@RequestParam(required = false) MultipartFile file) throws IOException {
-//
-//		byte[] attachmentBytes = null;
-//		String fileName = null;
-//
-//		if (file != null && !file.isEmpty()) {
-//			attachmentBytes = file.getBytes(); // 🔥 IMPORTANT
-//			fileName = file.getOriginalFilename();
-//		}
-//
-//		log.info("📧 Admin triggered bulk email | status={}, subject={}, filePresent={}", status, subject,
-//				file != null && !file.isEmpty());
-//
-//		service.sendBulkMailByStatus(status, subject, content, attachmentBytes, fileName);
-//
-//		return ResponseEntity.ok(new ApiResponse<>("Email sent successfully to " + status + " users"));
-//	}
+	@PostMapping(value = "/send-email", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ApiResponse<String>> sendEmailToUsers(@RequestParam AccountStatus status,
+			@RequestParam String subject, @RequestParam String content,
+			@RequestParam(required = false) MultipartFile file) throws IOException {
+
+		byte[] attachmentBytes = null;
+		String fileName = null;
+
+		if (file != null && !file.isEmpty()) {
+			attachmentBytes = file.getBytes(); // 🔥 IMPORTANT
+			fileName = file.getOriginalFilename();
+		}
+
+		log.info("📧 Admin triggered bulk email | status={}, subject={}, filePresent={}", status, subject,
+				file != null && !file.isEmpty());
+
+		service.sendBulkMailByStatus(status, subject, content, attachmentBytes, fileName);
+
+		return ResponseEntity.ok(new ApiResponse<>("Email sent successfully to " + status + " users"));
+	}
 
 }

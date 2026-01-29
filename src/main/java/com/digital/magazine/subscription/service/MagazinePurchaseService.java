@@ -4,6 +4,6 @@ import org.springframework.security.core.Authentication;
 
 public interface MagazinePurchaseService {
 
-	public void purchase(Authentication auth, Long bookId);
+	public String purchase(Authentication auth, Long bookId);
 
 }

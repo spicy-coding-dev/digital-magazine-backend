@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.digital.magazine.common.response.ApiResponse;
 import com.digital.magazine.subscription.service.MagazinePurchaseService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,12 +22,12 @@ public class MagazinePurchaseController {
 	private final MagazinePurchaseService service;
 
 	@PostMapping("magazine/{bookId}/buy")
-	public ResponseEntity<?> buySingle(@PathVariable Long bookId, Authentication auth) {
+	public ResponseEntity<ApiResponse<String>> buySingle(@PathVariable Long bookId, Authentication auth) {
 
 		log.info("Single magazine buy | user={} | book={}", auth.getName(), bookId);
 
-		service.purchase(auth, bookId);
+		String message = service.purchase(auth, bookId);
 
-		return ResponseEntity.ok("Magazine unlocked");
+		return ResponseEntity.ok(new ApiResponse<>(message));
 	}
 }

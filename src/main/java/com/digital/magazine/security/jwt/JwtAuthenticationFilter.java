@@ -33,10 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		String path = request.getRequestURI();
 		if (path.equals("/api/v1/auth/register") || path.equals("/api/v1/auth/verify-email")
-				|| path.equals("/api/v1/auth/user-login") || path.equals("/api/v1/auth/refresh")
-				|| path.equals("/api/v1/auth/forgot-password") || path.equals("/api/v1/auth/reset-password")
-				|| path.equals("/api/v1/super-admin/verify-email") || path.equals("/api/v1/subscriptions/getplans")
-				|| path.startsWith("/api/v1/analytics/guest") || path.startsWith("/api/v1/user")
+				|| path.equals("/api/v1/auth/refresh") || path.equals("/api/v1/auth/forgot-password")
+				|| path.equals("/api/v1/auth/reset-password") || path.equals("/api/v1/super-admin/verify-email")
+				|| path.equals("/api/v1/subscriptions/getplans") || path.startsWith("/api/v1/analytics/guest")
 				|| path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/actuator")
 				|| path.equals("/api/v1/manage/verify-email")) {
 			filterChain.doFilter(request, response); // skip JWT check
@@ -44,27 +43,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 
 		final String authHeader = request.getHeader("Authorization");
-		String username = null;
-		String jwt = null;
+//		String username = null;
+//		String jwt = null;
 
 		try {
 			if (authHeader != null && authHeader.startsWith("Bearer ")) {
-				jwt = authHeader.substring(7);
-				username = jwtUtil.extractUsername(jwt); // ⚠️ can throw ExpiredJwtException
-			} else {
-				throw new RuntimeException("Token இல்லை / தவறான Token");
-			}
+				String jwt = authHeader.substring(7);
+				String username = jwtUtil.extractUsername(jwt); // ⚠️ can throw ExpiredJwtException
+				if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+					UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-				if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-							null, userDetails.getAuthorities());
-					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-					SecurityContextHolder.getContext().setAuthentication(authToken);
+					if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+						UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+								userDetails, null, userDetails.getAuthorities());
+						authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+						SecurityContextHolder.getContext().setAuthentication(authToken);
+					}
 				}
 			}
+//			else {
+//				throw new RuntimeException("Token இல்லை / தவறான Token");
+//			}
 
 			filterChain.doFilter(request, response);
 

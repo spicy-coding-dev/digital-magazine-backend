@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.digital.magazine.common.response.ApiResponse;
+import com.digital.magazine.subscription.dto.MagazinePurchaseAdminDto;
 import com.digital.magazine.subscription.dto.SubscribedUserDto;
 import com.digital.magazine.subscription.dto.SubscriptionPlanDto;
 import com.digital.magazine.subscription.dto.SubscriptionUpdateRequest;
@@ -31,16 +33,18 @@ public class SubscriptionAdminController {
 
 	@PreAuthorize("hasAnyRole('ADMIN')")
 	@PatchMapping("/update/{planCode}")
-	public ResponseEntity<SubscriptionPlanDto> updatePlan(@PathVariable String planCode,
+	public ResponseEntity<ApiResponse<SubscriptionPlanDto>> updatePlan(@PathVariable String planCode,
 			@RequestBody SubscriptionUpdateRequest request) {
 
 		log.info("✏️ Updating subscription plan: {}", planCode);
 
-		return ResponseEntity.ok(service.updatePlan(planCode, request));
+		SubscriptionPlanDto updatedPlan = service.updatePlan(planCode, request);
+
+		return ResponseEntity.ok(new ApiResponse<>("சந்தா திட்டம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது", updatedPlan));
 	}
 
 	@GetMapping("/getplans")
-	public Map<String, List<SubscriptionPlanDto>> getPlans() {
+	public ResponseEntity<ApiResponse<Map<String, List<SubscriptionPlanDto>>>> getPlans() {
 
 		log.info("📥 GET /api/subscriptions/getplans called");
 
@@ -48,27 +52,27 @@ public class SubscriptionAdminController {
 
 		log.info("📤 Subscription plans fetched successfully. Categories={}", response.keySet());
 
-		return response;
+		return ResponseEntity.ok(new ApiResponse<>("செயலில் உள்ள சந்தா திட்டங்கள் பெறப்பட்டன", response));
 	}
 
 	@GetMapping("/users")
 	@PreAuthorize("hasAnyRole('ADMIN')")
-	public ResponseEntity<List<SubscribedUserDto>> getSubscribedUsers(@RequestParam SubscriptionStatus status,
-			@RequestParam(required = false) SubscriptionType type) {
+	public ResponseEntity<ApiResponse<List<SubscribedUserDto>>> getSubscribedUsers(
+			@RequestParam SubscriptionStatus status, @RequestParam(required = false) SubscriptionType type) {
 
 		log.info("👮 Admin requested subscribed users list");
 
-		return ResponseEntity.ok(queryService.getSubscribedUsers(type, status));
+		return ResponseEntity.ok(new ApiResponse<>(queryService.getSubscribedUsers(type, status)));
 	}
 
 	// 🔹 All single magazine purchases
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/magazine/users")
-	public ResponseEntity<?> getAllPurchases() {
+	public ResponseEntity<ApiResponse<List<MagazinePurchaseAdminDto>>> getAllPurchases() {
 
 		log.info("📥 GET /admin/purchases");
 
-		return ResponseEntity.ok(queryService.getAllPurchases());
+		return ResponseEntity.ok(new ApiResponse<>(queryService.getAllPurchases()));
 	}
 
 	// 🔹 Purchases by magazine
@@ -83,7 +87,7 @@ public class SubscriptionAdminController {
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/between-dates")
-	public ResponseEntity<?> getPurchasesBetweenDates(
+	public ResponseEntity<ApiResponse<List<MagazinePurchaseAdminDto>>> getPurchasesBetweenDates(
 
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
 
@@ -93,6 +97,6 @@ public class SubscriptionAdminController {
 
 		log.info("📥 GET purchases between dates | from={} | to={} | bookId={}", fromDate, toDate, bookId);
 
-		return ResponseEntity.ok(queryService.getPurchasesBetweenDates(fromDate, toDate, bookId));
+		return ResponseEntity.ok(new ApiResponse<>(queryService.getPurchasesBetweenDates(fromDate, toDate, bookId)));
 	}
 }

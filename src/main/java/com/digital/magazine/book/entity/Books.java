@@ -8,7 +8,6 @@ import com.digital.magazine.common.enums.BookCategory;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.user.entity.User;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,7 +20,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,6 +70,7 @@ public class Books {
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "book_tags", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+	@Builder.Default
 	private Set<Tag> tags = new HashSet<>();
 
 	@Column(nullable = false)

@@ -54,6 +54,10 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 				WHERE us.plan.type = :type
 				AND us.status = 'ACTIVE'
 			""")
-	List<String> findEmailsBySubscriptionType(SubscriptionType type);
+	List<String> findEmailBySubscriptionType(SubscriptionType type);
 
+	boolean existsByUser_IdAndPlan_TypeAndStatus(Long userId, SubscriptionType type, SubscriptionStatus status);
+
+	boolean existsByUserAndPlan_TypeAndStatusAndEndDateAfter(User user, SubscriptionType type,
+			SubscriptionStatus status, LocalDate date);
 }

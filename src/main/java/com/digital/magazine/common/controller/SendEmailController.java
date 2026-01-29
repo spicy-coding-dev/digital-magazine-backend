@@ -32,7 +32,7 @@ public class SendEmailController {
 			@RequestParam MailTargetType targetType,
 
 			// ACCOUNT_STATUS ku mattum
-			@RequestParam(required = false) AccountStatus accountStatus,
+			@RequestParam(required = false) AccountStatus status,
 
 			@RequestParam String subject, @RequestParam String content,
 
@@ -48,7 +48,7 @@ public class SendEmailController {
 
 		log.info("📧 Bulk email request | targetType={} | subject={}", targetType, subject);
 
-		service.sendBulkMail(targetType, accountStatus, subject, content, attachmentBytes, fileName);
+		service.sendBulkMail(targetType, status, subject, content, attachmentBytes, fileName);
 
 		return ResponseEntity.ok(new ApiResponse<>("Email sent successfully to " + targetType + " users"));
 	}

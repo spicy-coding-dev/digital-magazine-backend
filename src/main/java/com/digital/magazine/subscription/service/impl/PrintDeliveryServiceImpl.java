@@ -11,6 +11,7 @@ import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.common.enums.BookCategory;
 import com.digital.magazine.common.exception.DeliveryNotFoundException;
 import com.digital.magazine.common.exception.NoBooksFoundException;
+import com.digital.magazine.common.exception.NoShippedDataFoundException;
 import com.digital.magazine.common.exception.UserNotFoundException;
 import com.digital.magazine.subscription.dto.PrintDeliveryResponseDto;
 import com.digital.magazine.subscription.dto.UpdatePrintIssueRequest;
@@ -83,7 +84,8 @@ public class PrintDeliveryServiceImpl implements PrintDeliveryService {
 
 		if (deliveries.isEmpty()) {
 			log.warn("⚠️ No SHIPPED deliveries found for {}", today);
-			return new byte[0];
+
+			throw new NoShippedDataFoundException("இன்றைய shipped data இல்லை");
 		}
 
 		return invoiceService.generatePrintInvoice(deliveries);

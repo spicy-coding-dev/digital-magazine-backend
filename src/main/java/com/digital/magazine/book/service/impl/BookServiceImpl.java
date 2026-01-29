@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.digital.magazine.analytics.repository.ArticleViewRepository;
 import com.digital.magazine.analytics.repository.GuestArticleViewRepository;
 import com.digital.magazine.book.dto.BookStatusUpdateDto;
+import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
 import com.digital.magazine.book.entity.Books;
@@ -32,7 +33,6 @@ import com.digital.magazine.common.exception.InvalidStatusTransitionException;
 import com.digital.magazine.common.exception.NoBooksFoundException;
 import com.digital.magazine.common.exception.UserNotFoundException;
 import com.digital.magazine.common.storage.SupabaseStorageService;
-import com.digital.magazine.user.dto.BookSummaryDto;
 import com.digital.magazine.user.entity.User;
 import com.digital.magazine.user.repository.UserRepository;
 

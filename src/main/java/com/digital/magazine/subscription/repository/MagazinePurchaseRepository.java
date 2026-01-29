@@ -2,6 +2,7 @@ package com.digital.magazine.subscription.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -32,6 +33,13 @@ public interface MagazinePurchaseRepository extends JpaRepository<MagazinePurcha
 				FROM MagazinePurchase mp
 				JOIN mp.user u
 			""")
-	List<String> findDistinctBuyerEmails();
+	List<String> findDistinctBuyerEmail();
+
+	@Query("""
+			    select mp.book.id
+			    from MagazinePurchase mp
+			    where mp.user.id = :userId
+			""")
+	Set<Long> findBookIdsByUserId(Long userId);
 
 }

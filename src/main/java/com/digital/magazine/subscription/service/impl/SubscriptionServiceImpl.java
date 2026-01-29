@@ -43,7 +43,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 	private final UserRepository userRepo;
 
 	@Override
-	public void buy(BuySubscriptionRequest req, Authentication auth) {
+	public String buy(BuySubscriptionRequest req, Authentication auth) {
 
 		User user = userRepo.findByEmail(auth.getName())
 				.orElseThrow(() -> new UserNotFoundException("பயனர் கிடைக்கவில்லை"));
@@ -92,13 +92,16 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 		}
 
 		// ✅ ACTIVATE SUBSCRIPTION
-		activateSubscription(user, plan, address);
+		UserSubscription sub = activateSubscription(user, plan, address);
 
 		log.info("✅ Subscription activated | user={} | plan={}", user.getEmail(), plan.getName());
+
+		// 🔥 SUCCESS MESSAGE (TAMIL)
+		return "நீங்கள் '" + plan.getName() + "' சந்தாவை " + sub.getEndDate()
+				+ " வரை வெற்றிகரமாக செயல்படுத்தியுள்ளீர்கள்";
 	}
 
-	@Override
-	public void activateSubscription(User user, SubscriptionPlan plan, UserAddress address) {
+	private UserSubscription activateSubscription(User user, SubscriptionPlan plan, UserAddress address) {
 
 		LocalDate start = LocalDate.now();
 		LocalDate end = start.plusYears(plan.getDurationYears());
@@ -113,6 +116,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 		if (plan.getType() == SubscriptionType.PRINT) {
 			generatePrintDeliveries(sub);
 		}
+
+		return sub;
 	}
 
 	private void generatePrintDeliveries(UserSubscription sub) {
