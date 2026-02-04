@@ -1,7 +1,6 @@
 package com.digital.magazine.book.dto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.digital.magazine.common.enums.BookStatus;
 
@@ -28,9 +27,6 @@ public class BookSummaryDto {
 	private Double price;
 
 	private BookStatus status;
-
-	// 🔥 IMPORTANT: Entity illa, plain String list
-	private List<String> tags;
 
 	private boolean accessible; // 🔓 open or 🔒 locked
 

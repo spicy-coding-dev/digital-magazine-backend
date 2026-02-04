@@ -1,6 +1,7 @@
 package com.digital.magazine.book.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.digital.magazine.book.dto.BookDetailsWithRelatedResponseDto;
 import com.digital.magazine.book.dto.BookStatusUpdateDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
@@ -47,11 +49,54 @@ public class AdminBookController {
 
 			@RequestPart("coverImage") MultipartFile coverImage,
 
-			@RequestPart("contentPdf") MultipartFile contentPdf,
-
 			@AuthenticationPrincipal UserDetails userDetails) {
-		bookService.uploadBook(dto, coverImage, contentPdf, userDetails);
+		bookService.uploadBook(dto, coverImage, userDetails);
 		return ResponseEntity.ok(new ApiResponse<>("📘 புத்தகம் வெற்றிகரமாக பதிவேற்றப்பட்டது"));
+	}
+
+	@PostMapping("/editor-image")
+	public ResponseEntity<ApiResponse<Map<String, String>>> uploadEditorImage(@RequestParam MultipartFile image) {
+
+		log.info("🖼️ [CONTROLLER] Editor image upload request");
+
+		String imageUrl = bookService.uploadEditorImage(image);
+
+		log.info("🚀 [CONTROLLER] Editor image upload success");
+
+		return ResponseEntity.ok(new ApiResponse<>(Map.of("url", imageUrl)));
+	}
+
+	// 🔥 AUTO SAVE + MANUAL SAVE
+	@PostMapping("/{bookId}/content")
+	public ResponseEntity<ApiResponse<String>> saveContent(@PathVariable Long bookId,
+			@RequestBody Map<String, String> body) {
+
+		log.info("📥 [CONTROLLER] Save content | bookId={}", bookId);
+
+		bookService.saveOrUpdateContent(bookId, body.get("content"));
+
+		return ResponseEntity.ok(new ApiResponse<>("📘 புத்தகத்தின் உள்ளடக்கம் வெற்றிகரமாக பதிவேற்றப்பட்டது"));
+	}
+
+	// 🔥 LOAD CONTENT
+	@GetMapping("/{bookId}/content")
+	public ResponseEntity<ApiResponse<Map<String, String>>> getContent(@PathVariable Long bookId) {
+
+		log.info("📤 [CONTROLLER] Get content | bookId={}", bookId);
+
+		String content = bookService.getContentByBookId(bookId);
+
+		return ResponseEntity.ok(new ApiResponse<>("புத்தக உள்ளடக்கம் ஏற்றப்பட்டது", Map.of("content", content)));
+	}
+
+	@GetMapping("/{bookId}")
+	public ResponseEntity<ApiResponse<BookDetailsWithRelatedResponseDto>> getBookDetails(@PathVariable Long bookId) {
+
+		log.info("📘 [CONTROLLER] Get book details | bookId={}", bookId);
+
+		BookDetailsWithRelatedResponseDto response = bookService.getBookDetails(bookId);
+
+		return ResponseEntity.ok(new ApiResponse<>(response));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")

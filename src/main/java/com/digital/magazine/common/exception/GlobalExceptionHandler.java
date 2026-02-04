@@ -243,6 +243,35 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage()));
 	}
 
+	@ExceptionHandler(BookContentNotFoundException.class)
+	public ResponseEntity<ApiResponse<Void>> handleBookContentNotFound(BookContentNotFoundException ex) {
+
+		log.warn("📕 Book content missing | {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage()));
+	}
+
+	@ExceptionHandler(InvalidEditorImageException.class)
+	public ResponseEntity<ApiResponse<Void>> handleInvalidEditorImage(InvalidEditorImageException ex) {
+
+		log.warn("🖼️ Editor image error | {}", ex.getMessage());
+
+		return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(InvalidBookContentException.class)
+	public ResponseEntity<ApiResponse<Void>> handleInvalidBookContent(InvalidBookContentException ex) {
+
+		log.warn("📝 Book content error | {}", ex.getMessage());
+
+		return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(BookNotPublishedException.class)
+	public ResponseEntity<ApiResponse<Void>> handleNotPublished(BookNotPublishedException ex) {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, ex.getMessage(), null));
+	}
+
 	// 🔴 FINAL catch-all (never expose internal error)
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<String>> handleGenericException(Exception ex) {

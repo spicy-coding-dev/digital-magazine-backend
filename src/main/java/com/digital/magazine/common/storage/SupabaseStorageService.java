@@ -1,5 +1,7 @@
 package com.digital.magazine.common.storage;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,7 +51,10 @@ public class SupabaseStorageService {
 		HttpClient httpClient = HttpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
 				.responseTimeout(Duration.ofSeconds(15));
 
-		this.webClient = builder.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
+		this.webClient = builder.clientConnector(new ReactorClientHttpConnector(httpClient))
+				.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(50 * 1024 * 1024)) // ⭐ 50MB
+				.build();
+
 	}
 
 	public Mono<String> fetchFile(String url) {
@@ -209,6 +214,25 @@ public class SupabaseStorageService {
 		} catch (Exception e) {
 			log.error("❌ [SIGNED URL FAILED] path={}", filePath, e);
 			throw new RuntimeException("Signed URL generation failed", e);
+		}
+	}
+
+	public InputStream getPrivatePdf(String filePath) {
+
+		String url = supabaseUrl + "/storage/v1/object/" + privateBucketName + "/" + filePath;
+
+		InputStreamResource resource = webClient.get().uri(url)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
+				.bodyToMono(InputStreamResource.class).block();
+
+		if (resource == null) {
+			throw new RuntimeException("Failed to fetch PDF from Supabase");
+		}
+
+		try {
+			return resource.getInputStream();
+		} catch (IOException e) {
+			throw new RuntimeException("Unable to read PDF stream", e);
 		}
 	}
 

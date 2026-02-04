@@ -48,4 +48,7 @@ public interface BookRepository extends JpaRepository<Books, Long> {
 
 	Optional<Books> findByCategoryAndMagazineNo(BookCategory category, Long magazineNo);
 
+	List<Books> findTop5ByCategoryAndStatusAndIdNotOrderByUpdatedAtDesc(BookCategory category, BookStatus status,
+			Long id);
+
 }

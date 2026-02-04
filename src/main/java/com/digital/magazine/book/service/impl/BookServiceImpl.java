@@ -3,6 +3,7 @@ package com.digital.magazine.book.service.impl;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,26 +14,34 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.digital.magazine.analytics.repository.ArticleViewRepository;
 import com.digital.magazine.analytics.repository.GuestArticleViewRepository;
+import com.digital.magazine.book.dto.BookDetailsResponseDto;
+import com.digital.magazine.book.dto.BookDetailsWithRelatedResponseDto;
 import com.digital.magazine.book.dto.BookStatusUpdateDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
+import com.digital.magazine.book.entity.BookContent;
 import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.entity.Tag;
+import com.digital.magazine.book.repository.BookContentRepository;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.book.repository.TagRepository;
 import com.digital.magazine.book.service.BookService;
 import com.digital.magazine.common.enums.BookCategory;
 import com.digital.magazine.common.enums.BookStatus;
+import com.digital.magazine.common.exception.BookContentNotFoundException;
 import com.digital.magazine.common.exception.FileDeletionException;
 import com.digital.magazine.common.exception.FileUploadException;
+import com.digital.magazine.common.exception.InvalidBookContentException;
 import com.digital.magazine.common.exception.InvalidCategoryException;
+import com.digital.magazine.common.exception.InvalidEditorImageException;
 import com.digital.magazine.common.exception.InvalidFileException;
 import com.digital.magazine.common.exception.InvalidStatusException;
 import com.digital.magazine.common.exception.InvalidStatusTransitionException;
 import com.digital.magazine.common.exception.NoBooksFoundException;
 import com.digital.magazine.common.exception.UserNotFoundException;
 import com.digital.magazine.common.storage.SupabaseStorageService;
+import com.digital.magazine.common.util.HtmlImageExtractor;
 import com.digital.magazine.user.entity.User;
 import com.digital.magazine.user.repository.UserRepository;
 
@@ -52,10 +61,10 @@ public class BookServiceImpl implements BookService {
 	private final SupabaseStorageService supabaseStorageService;
 	private final GuestArticleViewRepository guestArticleRepo;
 	private final ArticleViewRepository articleViewRepo;
+	private final BookContentRepository bookContentRepo;
 
 	@Override
-	public void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, MultipartFile contentPdf,
-			UserDetails userDetails) {
+	public void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, UserDetails userDetails) {
 
 		String adminEmail = userDetails.getUsername();
 		log.info("📘 [BOOK UPLOAD START] admin={}", adminEmail);
@@ -69,21 +78,79 @@ public class BookServiceImpl implements BookService {
 		log.info("🖼️ Uploading cover image...");
 		String coverImageUrl = supabaseStorageService.uploadPublicFile(coverImage, "books/covers");
 
-		// 2️⃣ PDF
-		log.info("📄 Uploading book PDF...");
-		String pdfPath = supabaseStorageService.uploadPrivateFile(contentPdf, "books/pdfs");
-
 		BookCategory category = BookCategory.fromTamil(dto.getCategory());
 		Set<Tag> tags = resolveTags(dto.getTags());
 
 		Books book = Books.builder().title(dto.getTitle()).subtitle(dto.getSubtitle()).author(dto.getAuthor())
 				.magazineNo(dto.getMagazineNo()).category(category).tags(tags).paid(dto.getPaid())
 				.price(dto.getPaid() ? dto.getPrice() : null).status(dto.getStatus()).coverImagePath(coverImageUrl)
-				.pdfPath(pdfPath).createdBy(admin).createdAt(LocalDateTime.now()).build();
+				.createdBy(admin).createdAt(LocalDateTime.now()).build();
 
 		bookRepo.save(book);
 
 		log.info("🎉 [BOOK UPLOAD SUCCESS] bookId={} admin={}", book.getId(), adminEmail);
+	}
+
+	@Override
+	public String uploadEditorImage(MultipartFile image) {
+
+		log.info("📥 [SERVICE] Upload editor image started | name={} | size={} bytes", image.getOriginalFilename(),
+				image.getSize());
+
+		if (image == null || image.isEmpty()) {
+			log.warn("⚠️ Empty image upload attempt");
+			throw new InvalidEditorImageException("படம் காலியாக உள்ளது");
+		}
+
+		if (image.getContentType() == null || !image.getContentType().startsWith("image/")) {
+			log.warn("⚠️ [SERVICE] Invalid content type | type={}", image.getContentType());
+			throw new InvalidEditorImageException("படம் மட்டும் பதிவேற்ற அனுமதி");
+		}
+
+		// ⭐ Upload to PUBLIC bucket
+		String imageUrl = supabaseStorageService.uploadPublicFile(image, "editor-images");
+
+		log.info("✅ [SERVICE] Image uploaded to Supabase | url={}", imageUrl);
+
+		return imageUrl;
+	}
+
+	// 🔥 AUTO SAVE + MANUAL SAVE (same method)
+	@Override
+	public void saveOrUpdateContent(Long bookId, String content) {
+
+		log.info("✏️ [SAVE REQUEST] bookId={}", bookId);
+
+		if (content == null || content.isBlank()) {
+			throw new InvalidBookContentException("புத்தக உள்ளடக்கம் காலியாக இருக்கக்கூடாது");
+		}
+
+		BookContent bookContent = bookContentRepo.findByBookId(bookId).map(existing -> {
+			log.info("🔁 Updating existing content | bookId={}", bookId);
+			existing.setContent(content);
+			existing.setUpdatedAt(LocalDateTime.now());
+			return existing;
+		}).orElseGet(() -> {
+			log.info("🆕 Creating new content | bookId={}", bookId);
+			return BookContent.builder().bookId(bookId).content(content).createdAt(LocalDateTime.now())
+					.updatedAt(LocalDateTime.now()).build();
+		});
+
+		bookContentRepo.save(bookContent);
+
+		log.info("✅ [SAVE SUCCESS] bookId={}", bookId);
+	}
+
+	// 🔥 LOAD CONTENT
+	@Override
+	public String getContentByBookId(Long bookId) {
+
+		log.info("📖 [FETCH CONTENT] bookId={}", bookId);
+
+		return bookContentRepo.findByBookId(bookId).map(BookContent::getContent).orElseThrow(() -> {
+			log.warn("⚠️ Content not found | bookId={}", bookId);
+			return new BookContentNotFoundException("இந்த புத்தகத்திற்கு உள்ளடக்கம் இன்னும் சேர்க்கப்படவில்லை");
+		});
 	}
 
 	@Override
@@ -128,16 +195,72 @@ public class BookServiceImpl implements BookService {
 						.subTitle(book.getSubtitle()).author(book.getAuthor())
 						.category(book.getCategory().getTamilLabel()) // ✅ Tamil
 						.coverImage(book.getCoverImagePath()).paid(book.isPaid()).magazineNo(book.getMagazineNo())
-						.price(book.isPaid() ? book.getPrice() : null).status(book.getStatus())
-						.tags(book.getTags().stream().map(Tag::getName) // 🔥 Entity → String
-								.toList())
-						.build())
+						.price(book.isPaid() ? book.getPrice() : null).status(book.getStatus()).build())
 				.toList();
 
 		log.info("✅ Response DTO prepared | category={}, responseCount={}", categoryLabel, response.size());
 
 		return response;
 	}
+
+	@Override
+	public BookDetailsWithRelatedResponseDto getBookDetails(Long bookId) {
+
+		log.info("📘 [SERVICE] Fetching book + related | bookId={}", bookId);
+
+		// 1️⃣ Book check
+		Books book = bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("Book not found"));
+
+		// 2️⃣ Content check (IMPORTANT 🔥)
+		Optional<BookContent> bookContent = bookContentRepo.findByBookId(bookId);
+
+		if (bookContent.isEmpty()) {
+			log.warn("⚠️ Content missing | bookId={}", bookId);
+		}
+
+		// 3️⃣ Main DTO
+		BookDetailsResponseDto bookDto = mapToBookDetailsDto(book, bookContent.orElse(null));
+
+		// 4️⃣ Related books
+		log.info("🔍 Fetching related books | category={}", book.getCategory());
+
+		List<Books> relatedBooks = bookRepo.findTop5ByCategoryAndStatusAndIdNotOrderByUpdatedAtDesc(book.getCategory(),
+				BookStatus.PUBLISHED, bookId);
+
+		List<BookSummaryDto> relatedDtos = relatedBooks.stream().map(this::mapToSummary).toList();
+
+		log.info("✅ Related books count={}", relatedDtos.size());
+
+		return BookDetailsWithRelatedResponseDto.builder().book(bookDto).relatedBooks(relatedDtos).build();
+	}
+
+	private BookDetailsResponseDto mapToBookDetailsDto(Books book, BookContent content) {
+
+		LocalDateTime publishedAt = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
+
+		return BookDetailsResponseDto.builder().id(book.getId()).title(book.getTitle()).subtitle(book.getSubtitle())
+				.authorName(book.getAuthor()).magazineNo(book.getMagazineNo())
+				.content(content != null ? content.getContent() : null).publishedAt(publishedAt)
+				.status(book.getStatus().name()).tags(book.getTags().stream().map(Tag::getName).toList()).build();
+	}
+
+//	@Override
+//	public BookDetailsResponseDto getBookDetails(Long bookId) {
+//
+//		Books book = bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("Book not found"));
+//
+//		BookContent bookContent = bookContentRepo.findByBookId(bookId)
+//				.orElseThrow(() -> new NoBooksFoundException("Book not found"));
+//
+//		log.info("📘 [SERVICE] Mapping book details | bookId={}", bookId);
+//
+//		LocalDateTime publishedAt = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
+//
+//		return BookDetailsResponseDto.builder().id(book.getId()).title(book.getTitle()).subtitle(book.getSubtitle())
+//				.authorName(book.getAuthor()).content(bookContent.getContent()) // HTML from editor
+//				.magazineNo(book.getMagazineNo()).publishedAt(publishedAt).status(book.getStatus().name())
+//				.tags(book.getTags().stream().map(Tag::getName).toList()).build();
+//	}
 
 	@Override
 	public BookSummaryDto updateBook(Long bookId, BookUpdateRequestDto dto, Authentication auth) {
@@ -302,13 +425,11 @@ public class BookServiceImpl implements BookService {
 		log.info("🧹 Deleting user views | bookId={}", bookId);
 		articleViewRepo.deleteByArticleId(bookId);
 
-		// ❌ OLD content blocks logic REMOVE (no OCR blocks anymore)
+		// 2️⃣ DELETE CONTENT + EDITOR IMAGES 🔥🔥🔥
+		deleteContentAndImages(bookId);
 
 		// 2️⃣ Delete COVER image (PUBLIC)
 		supabaseStorageService.deletePublicFile(book.getCoverImagePath());
-
-		// 3️⃣ Delete PDF (PRIVATE) 🔥
-		supabaseStorageService.deletePrivateFile(book.getPdfPath());
 
 		// 4️⃣ Clear relations
 		book.getTags().clear();
@@ -317,6 +438,29 @@ public class BookServiceImpl implements BookService {
 		bookRepo.delete(book);
 
 		log.info("✅ [BOOK DELETE COMPLETED] bookId={}", bookId);
+	}
+
+	private void deleteContentAndImages(Long bookId) {
+
+		log.warn("🧨 [CONTENT DELETE START] bookId={}", bookId);
+
+		bookContentRepo.findByBookId(bookId).ifPresent(content -> {
+
+			// 1️⃣ Extract image URLs
+			List<String> imageUrls = HtmlImageExtractor.extractImageUrls(content.getContent());
+
+			log.info("🖼️ Found {} editor images | bookId={}", imageUrls.size(), bookId);
+
+			// 2️⃣ Delete each image
+			for (String url : imageUrls) {
+				log.info("🗑️ Deleting editor image: {}", url);
+				supabaseStorageService.deletePublicFile(url);
+			}
+
+			// 3️⃣ Delete content row
+			bookContentRepo.deleteByBookId(bookId);
+			log.info("🧹 Book content deleted | bookId={}", bookId);
+		});
 	}
 
 	// 🔐 STATUS RULE VALIDATION (Tamil messages)
@@ -346,12 +490,8 @@ public class BookServiceImpl implements BookService {
 		return BookSummaryDto.builder().id(book.getId()).title(book.getTitle()).subTitle(book.getSubtitle())
 				.author(book.getAuthor()).category(book.getCategory().getTamilLabel())
 				.coverImage(book.getCoverImagePath()).magazineNo(book.getMagazineNo()).paid(book.isPaid())
-				.price(book.isPaid() ? book.getPrice() : null).status(book.getStatus())
-
-				// 🔥 IMPORTANT CHANGE – TAG ENTITY → STRING LIST
-				.tags(book.getTags().stream().map(Tag::getName).toList())
-
-				.build();
+				.price(book.getPrice()).status(book.getStatus()).accessible(!book.isPaid())
+				.uploadAt(book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt()).build();
 	}
 
 	private Set<Tag> resolveTags(List<String> tags) {

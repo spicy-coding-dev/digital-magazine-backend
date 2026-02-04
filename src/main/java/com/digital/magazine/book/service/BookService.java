@@ -6,14 +6,22 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.digital.magazine.book.dto.BookDetailsWithRelatedResponseDto;
 import com.digital.magazine.book.dto.BookStatusUpdateDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
 
 public interface BookService {
-	void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, MultipartFile contentPdf,
-			UserDetails userDetails);
+	void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, UserDetails userDetails);
+
+	public String uploadEditorImage(MultipartFile image);
+
+	void saveOrUpdateContent(Long bookId, String content);
+
+	String getContentByBookId(Long bookId);
+
+	public BookDetailsWithRelatedResponseDto getBookDetails(Long bookId);
 
 	public List<BookSummaryDto> getBooksByCategory(String categoryLabel, String status);
 

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 
+import com.digital.magazine.book.dto.BookDetailsWithRelatedResponseDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
 
 public interface UserBookService {
@@ -14,5 +15,6 @@ public interface UserBookService {
 
 	public List<BookSummaryDto> getBooksByCategory(String categoryLabel, String status, Principal loginUser);
 
-	public String getBookContentPdf(Long bookId, Authentication auth);
+	public BookDetailsWithRelatedResponseDto getBookDetails(Long bookId, Authentication auth);
+
 }
