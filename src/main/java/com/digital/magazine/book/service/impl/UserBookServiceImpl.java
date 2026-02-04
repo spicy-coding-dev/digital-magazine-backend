@@ -170,7 +170,7 @@ public class UserBookServiceImpl implements UserBookService {
 				.coverImage(book.getCoverImagePath()).magazineNo(book.getMagazineNo()).paid(book.isPaid())
 
 				// 🔥 MAIN LOGIC
-				.price(accessible ? book.getPrice() : null).status(book.getStatus()).accessible(accessible)
+				.price(book.getPrice()).status(book.getStatus()).accessible(accessible)
 				.uploadAt(book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt())
 
 				.build();
