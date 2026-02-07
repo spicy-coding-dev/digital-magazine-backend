@@ -58,7 +58,7 @@ public class RazorpayServiceImpl implements RazorpayService {
 			Order order = client.orders.create(options);
 
 			String orderId = order.get("id").toString();
-			Long orderAmount = order.get("amount");
+			Long orderAmount = ((Number) order.get("amount")).longValue();
 
 			log.info("✅ Razorpay order created | orderId={}", orderId);
 
