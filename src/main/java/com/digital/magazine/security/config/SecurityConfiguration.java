@@ -40,7 +40,8 @@ public class SecurityConfiguration {
 										// &
 										// register
 										// open
-						.requestMatchers("/api/v1/subscription/**", "/api/v1/addresses/**").hasRole("USER") // news
+						.requestMatchers("/api/v1/subscription/**", "/api/v1/addresses/**", "/api/v1/payments/**")
+						.hasRole("USER") // news
 						.requestMatchers("/api/v1/admin/**", "/api/v1/subscriptions/**", "/api/v1/manage/create-user",
 								"/api/v1/email/**")
 						.hasRole("ADMIN") // news
@@ -65,7 +66,7 @@ public class SecurityConfiguration {
 					|| path.startsWith("/api/v1/manage/create-user") || path.startsWith("/api/v1/email/")) {
 				message = "அட்மின் தரவை அணுக உங்களுக்கு அனுமதி இல்லை";
 			} else if (path.startsWith("/api/v1/user/") || path.startsWith("/api/v1/subscription/")
-					|| path.startsWith("/api/v1/addresses/")) {
+					|| path.startsWith("/api/v1/addresses/") || path.startsWith("/api/v1/payments")) {
 				message = "இந்த API-க்கு உங்களுக்கு USER role தேவை";
 			} else {
 				message = "உங்களுக்கு இந்த resource-ஐ அணுக அனுமதி இல்லை";
