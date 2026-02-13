@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class LoginAttemptService {
 
@@ -20,6 +23,7 @@ public class LoginAttemptService {
 	}
 
 	public void loginSucceeded(String key) {
+		log.info("✅ Login success | resetting attempts | key={}", key);
 		attemptsCache.invalidate(key);
 	}
 
@@ -34,13 +38,25 @@ public class LoginAttemptService {
 			attempts = 0;
 		attempts++;
 		attemptsCache.put(key, attempts);
-		System.out.println("❌ Failed attempt for " + key + " => " + attempts);
+		log.warn("❌ Login failed | key={} | attempts={}", key, attempts);
+
+		if (attempts == CAPTCHA_THRESHOLD) {
+			log.warn("🧩 CAPTCHA threshold reached | key={} | attempts={}", key, attempts);
+		}
+
+		if (attempts >= MAX_ATTEMPT) {
+			log.error("🚫 Account temporarily blocked | key={} | attempts={}", key, attempts);
+		}
 	}
 
+	// 🚫 Block check
 	public boolean isBlocked(String key) {
 		Integer attempts = attemptsCache.getIfPresent(key);
-		System.out.println("🚫 Block check for " + key + " => " + attempts);
-		return attempts != null && attempts >= MAX_ATTEMPT;
+		boolean blocked = attempts != null && attempts >= MAX_ATTEMPT;
+
+		log.debug("🚫 Block check | key={} | attempts={} | blocked={}", key, attempts, blocked);
+
+		return blocked;
 	}
 
 }

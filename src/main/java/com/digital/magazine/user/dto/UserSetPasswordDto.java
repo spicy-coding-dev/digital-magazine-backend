@@ -5,6 +5,7 @@ import lombok.*;
 
 @Getter
 @Setter
+@Builder
 public class UserSetPasswordDto {
 
 	@NotBlank(message = "Token காலியாக இருக்கக்கூடாது")

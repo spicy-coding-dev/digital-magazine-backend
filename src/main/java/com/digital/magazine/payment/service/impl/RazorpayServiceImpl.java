@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.digital.magazine.common.exception.InvalidPaymentTypeException;
 import com.digital.magazine.common.exception.PaymentInitiationException;
 import com.digital.magazine.common.exception.PaymentVerificationFailedException;
 import com.digital.magazine.common.exception.UserNotFoundException;
@@ -67,7 +68,9 @@ public class RazorpayServiceImpl implements RazorpayService {
 
 		} catch (Exception e) {
 			log.error("❌ Razorpay order creation failed | amount={} | receipt={}", amount, receipt, e);
-			throw new PaymentInitiationException("Payment initiation failed. Please try again.", e);
+			throw new PaymentInitiationException(
+					"பணம் செலுத்தும் செயல் தொடங்க முடியவில்லை. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.", e);
+
 		}
 	}
 
@@ -80,7 +83,9 @@ public class RazorpayServiceImpl implements RazorpayService {
 
 		if (!isValid) {
 			log.error("❌ Payment verification failed | orderId={}", req.getRazorpayOrderId());
-			throw new PaymentVerificationFailedException("Payment verification failed");
+			throw new PaymentVerificationFailedException(
+					"பணம் செலுத்தல் சரிபார்ப்பு தோல்வியடைந்தது. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.");
+
 		}
 
 		User user = userRepo.findByEmail(auth.getName()).orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -103,7 +108,8 @@ public class RazorpayServiceImpl implements RazorpayService {
 			resultMessage = magazinePurchaseService.purchase(auth, req.getBookId());
 		}
 
-		default -> throw new IllegalStateException("Invalid payment type");
+		default -> throw new InvalidPaymentTypeException(
+				"தவறான கட்டண வகை தேர்வு செய்யப்பட்டுள்ளது. தயவுசெய்து சரியான கட்டண முறையைத் தேர்வு செய்யவும்.");
 		}
 
 		// 💾 Save payment

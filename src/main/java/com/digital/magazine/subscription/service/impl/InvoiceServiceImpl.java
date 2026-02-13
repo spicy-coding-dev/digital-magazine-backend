@@ -30,14 +30,19 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public byte[] generatePrintInvoice(List<PrintDelivery> deliveries) {
 
 		if (deliveries == null || deliveries.isEmpty()) {
+			log.warn("⚠️ Invoice generation skipped | No deliveries provided");
 			return new byte[0];
 		}
+
+		log.info("📄 Invoice generation started | totalDeliveries={}", deliveries.size());
 
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			Document document = new Document(PageSize.A4, 20, 20, 20, 20);
 			PdfWriter writer = PdfWriter.getInstance(document, baos);
 			document.open();
+
+			log.debug("📑 PDF document opened (A4)");
 
 			Font companyFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
 			Font labelFont = new Font(Font.FontFamily.HELVETICA, 8, Font.BOLD);
@@ -58,6 +63,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 				// New page after every 4 stickers
 				if (index > 0 && index % 4 == 0) {
 					document.newPage();
+					log.debug("📄 New PDF page created | stickerIndex={}", index);
 				}
 
 				int pos = index % 4;
@@ -65,6 +71,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 				float x = (pos % 2 == 0) ? leftMargin : leftMargin + stickerWidth + gap;
 
 				float y = (pos < 2) ? topStart : topStart - stickerHeight - 40;
+
+				log.debug("🧾 Rendering sticker | index={} | user={} | magazineNo={}", index,
+						d.getSubscription().getUser().getName(), d.getBook().getMagazineNo());
 
 				PdfContentByte cb = writer.getDirectContent();
 
@@ -120,6 +129,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 			}
 
 			document.close();
+
+			log.info("✅ Invoice generation completed | totalStickers={} | pages={}", index, (index / 4) + 1);
 			return baos.toByteArray();
 
 		} catch (Exception e) {

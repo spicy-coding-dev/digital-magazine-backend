@@ -34,6 +34,9 @@ public interface BookRepository extends JpaRepository<Books, Long> {
 			""")
 	List<Books> findForHome(@Param("category") BookCategory category, Pageable pageable);
 
+	@Query("select max(b.magazineNo) from Books b where b.category = :category")
+	Integer findLatestMagazineNo(@Param("category") BookCategory category);
+
 	long countByStatus(BookStatus status);
 
 	@Query("""

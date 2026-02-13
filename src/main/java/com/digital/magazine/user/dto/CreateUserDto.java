@@ -5,6 +5,7 @@ import lombok.*;
 
 @Getter
 @Setter
+@Builder
 public class CreateUserDto {
 
 	@NotBlank(message = "பெயர் காலியாக இருக்கக்கூடாது")

@@ -2,6 +2,7 @@ package com.digital.magazine.book.dto;
 
 import java.time.LocalDateTime;
 
+import com.digital.magazine.book.enums.MagazineIssueType;
 import com.digital.magazine.common.enums.BookStatus;
 
 import lombok.AllArgsConstructor;
@@ -29,6 +30,8 @@ public class BookSummaryDto {
 	private BookStatus status;
 
 	private boolean accessible; // 🔓 open or 🔒 locked
+
+	private MagazineIssueType issueType; // 🔥 NEW
 
 	private LocalDateTime uploadAt;
 

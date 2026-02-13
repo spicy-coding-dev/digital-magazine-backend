@@ -62,13 +62,4 @@ public class AccessServiceImpl implements AccessService {
 		return userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(userId, SubscriptionType.DIGITAL,
 				SubscriptionStatus.ACTIVE);
 	}
-//
-//	private boolean hasPrintSubscription(Long userId) {
-//		return userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(userId, SubscriptionType.PRINT,
-//				SubscriptionStatus.ACTIVE);
-//	}
-//
-//	private Set<Long> getIndividualBookIds(Long userId) {
-//		return magazinePurchaseRepo.findBookIdsByUserId(userId);
-//	}
 }

@@ -134,4 +134,6 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 		log.info("Print deliveries generated | subscription={}", sub.getId());
 	}
+	
+
 }

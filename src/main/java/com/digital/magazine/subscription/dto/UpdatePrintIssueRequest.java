@@ -7,11 +7,13 @@ import com.digital.magazine.subscription.enums.DeliveryStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 public class UpdatePrintIssueRequest {
 
 	@NotNull(message = "இதழ் எண் (Magazine No) கட்டாயம் தேவை")

@@ -16,8 +16,6 @@ import com.digital.magazine.user.entity.User;
 
 public interface UserSubscriptionRepository extends JpaRepository<UserSubscription, Long> {
 
-//	boolean existsActiveDigital(Long id);
-
 	boolean existsByUserAndPlan_TypeAndStatus(User user, SubscriptionType type, SubscriptionStatus status);
 
 	Optional<UserSubscription> findActiveByUser(User user);
@@ -60,4 +58,6 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 
 	boolean existsByUserAndPlan_TypeAndStatusAndEndDateAfter(User user, SubscriptionType type,
 			SubscriptionStatus status, LocalDate date);
+
+	List<UserSubscription> findByStatusAndEndDateBefore(SubscriptionStatus status, LocalDate date);
 }

@@ -1,11 +1,8 @@
 package com.digital.magazine.common.storage;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutException;
@@ -93,14 +87,14 @@ public class SupabaseStorageService {
 
 	/* ===================== PRIVATE UPLOAD ===================== */
 
-	public String uploadPrivateFile(MultipartFile file, String folder) {
-		log.info("🔐 [PRIVATE UPLOAD START] file={} folder={}", file.getOriginalFilename(), folder);
-
-		String path = upload(file, folder, privateBucketName, false);
-
-		log.info("✅ [PRIVATE UPLOAD SUCCESS] path={}", path);
-		return path;
-	}
+//	public String uploadPrivateFile(MultipartFile file, String folder) {
+//		log.info("🔐 [PRIVATE UPLOAD START] file={} folder={}", file.getOriginalFilename(), folder);
+//
+//		String path = upload(file, folder, privateBucketName, false);
+//
+//		log.info("✅ [PRIVATE UPLOAD SUCCESS] path={}", path);
+//		return path;
+//	}
 
 	/* ===================== CORE UPLOAD ===================== */
 
@@ -169,71 +163,71 @@ public class SupabaseStorageService {
 		}
 	}
 
-	public void deletePrivateFile(String filePath) {
-
-		if (filePath == null || filePath.isBlank()) {
-			log.warn("⚠️ [PRIVATE DELETE SKIPPED] Empty path");
-			return;
-		}
-
-		try {
-			String deleteUrl = supabaseUrl + "/storage/v1/object/" + privateBucketName + "/" + filePath;
-
-			log.info("🗑️ [PRIVATE DELETE START] bucket={} path={}", privateBucketName, filePath);
-
-			webClient.delete().uri(deleteUrl).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
-					.bodyToMono(Void.class).block();
-
-			log.info("✅ [PRIVATE DELETE SUCCESS] path={}", filePath);
-
-		} catch (Exception e) {
-			log.error("❌ [PRIVATE DELETE FAILED] bucket={} path={}", privateBucketName, filePath, e);
-		}
-	}
+//	public void deletePrivateFile(String filePath) {
+//
+//		if (filePath == null || filePath.isBlank()) {
+//			log.warn("⚠️ [PRIVATE DELETE SKIPPED] Empty path");
+//			return;
+//		}
+//
+//		try {
+//			String deleteUrl = supabaseUrl + "/storage/v1/object/" + privateBucketName + "/" + filePath;
+//
+//			log.info("🗑️ [PRIVATE DELETE START] bucket={} path={}", privateBucketName, filePath);
+//
+//			webClient.delete().uri(deleteUrl).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
+//					.bodyToMono(Void.class).block();
+//
+//			log.info("✅ [PRIVATE DELETE SUCCESS] path={}", filePath);
+//
+//		} catch (Exception e) {
+//			log.error("❌ [PRIVATE DELETE FAILED] bucket={} path={}", privateBucketName, filePath, e);
+//		}
+//	}
 
 	/* ===================== SIGNED URL ===================== */
 
-	public String generateSignedUrlFromPrivate(String bucket, String filePath, int expirySeconds) {
-
-		log.info("🔐 [SIGNED URL REQUEST] bucket={} path={} expiry={}s", bucket, filePath, expirySeconds);
-
-		try {
-			String signUrl = supabaseUrl + "/storage/v1/object/sign/" + bucket + "/" + filePath;
-
-			Map<String, Object> body = Map.of("expiresIn", expirySeconds);
-
-			String response = webClient.post().uri(signUrl).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey)
-					.bodyValue(body).retrieve().bodyToMono(String.class).block();
-
-			JsonNode json = new ObjectMapper().readTree(response);
-			String signedUrl = supabaseUrl + "/storage/v1" + json.get("signedURL").asText();
-
-			log.info("✅ [SIGNED URL GENERATED]");
-			return signedUrl;
-
-		} catch (Exception e) {
-			log.error("❌ [SIGNED URL FAILED] path={}", filePath, e);
-			throw new RuntimeException("Signed URL generation failed", e);
-		}
-	}
-
-	public InputStream getPrivatePdf(String filePath) {
-
-		String url = supabaseUrl + "/storage/v1/object/" + privateBucketName + "/" + filePath;
-
-		InputStreamResource resource = webClient.get().uri(url)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
-				.bodyToMono(InputStreamResource.class).block();
-
-		if (resource == null) {
-			throw new RuntimeException("Failed to fetch PDF from Supabase");
-		}
-
-		try {
-			return resource.getInputStream();
-		} catch (IOException e) {
-			throw new RuntimeException("Unable to read PDF stream", e);
-		}
-	}
+//	public String generateSignedUrlFromPrivate(String bucket, String filePath, int expirySeconds) {
+//
+//		log.info("🔐 [SIGNED URL REQUEST] bucket={} path={} expiry={}s", bucket, filePath, expirySeconds);
+//
+//		try {
+//			String signUrl = supabaseUrl + "/storage/v1/object/sign/" + bucket + "/" + filePath;
+//
+//			Map<String, Object> body = Map.of("expiresIn", expirySeconds);
+//
+//			String response = webClient.post().uri(signUrl).header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey)
+//					.bodyValue(body).retrieve().bodyToMono(String.class).block();
+//
+//			JsonNode json = new ObjectMapper().readTree(response);
+//			String signedUrl = supabaseUrl + "/storage/v1" + json.get("signedURL").asText();
+//
+//			log.info("✅ [SIGNED URL GENERATED]");
+//			return signedUrl;
+//
+//		} catch (Exception e) {
+//			log.error("❌ [SIGNED URL FAILED] path={}", filePath, e);
+//			throw new RuntimeException("Signed URL generation failed", e);
+//		}
+//	}
+//
+//	public InputStream getPrivatePdf(String filePath) {
+//
+//		String url = supabaseUrl + "/storage/v1/object/" + privateBucketName + "/" + filePath;
+//
+//		InputStreamResource resource = webClient.get().uri(url)
+//				.header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseKey).retrieve()
+//				.bodyToMono(InputStreamResource.class).block();
+//
+//		if (resource == null) {
+//			throw new RuntimeException("Failed to fetch PDF from Supabase");
+//		}
+//
+//		try {
+//			return resource.getInputStream();
+//		} catch (IOException e) {
+//			throw new RuntimeException("Unable to read PDF stream", e);
+//		}
+//	}
 
 }
