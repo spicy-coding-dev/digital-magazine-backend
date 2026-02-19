@@ -82,7 +82,7 @@ public class GlobalExceptionHandler {
 
 		log.warn("User not found: {}", ex.getMessage());
 
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage()));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
 	// ✅ Unauthorized / forbidden access
@@ -174,7 +174,7 @@ public class GlobalExceptionHandler {
 
 		log.warn("🚫 AddressAccessDeniedException: {}", ex.getMessage());
 
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(ex.getMessage()));
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
 	@ExceptionHandler(NoBooksFoundException.class)
@@ -182,7 +182,7 @@ public class GlobalExceptionHandler {
 
 		log.warn("📭 No books response sent to user");
 
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage()));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
 	@ExceptionHandler(FileDeletionException.class)
@@ -220,21 +220,27 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler({ DeliveryNotFoundException.class, SubscriptionPlanNotFoundException.class })
 	public ResponseEntity<ApiResponse<String>> handleStatusError(RuntimeException ex) {
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage(), null));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
-	@ExceptionHandler({ FreeBookException.class, BookNotPurchasableException.class, AlreadyPurchasedException.class,
+	@ExceptionHandler({ FreeBookException.class, BookNotPurchasableException.class,
 			DigitalSubscriptionExistsException.class, AddressNotRequiredException.class })
 	public ResponseEntity<ApiResponse<String>> handlePurchaseErrors(RuntimeException ex) {
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(false, ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(AlreadyPurchasedException.class)
+	public ResponseEntity<ApiResponse<String>> handleAlreadyPurchaseErrors(AlreadyPurchasedException ex) {
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
 	@ExceptionHandler({ SubscriptionNotAllowedException.class, DuplicateSubscriptionException.class,
 			AddressRequiredException.class })
 	public ResponseEntity<ApiResponse<String>> handleSubscriptionErrors(RuntimeException ex) {
 
-		return ResponseEntity.badRequest().body(new ApiResponse<>(ex.getMessage(), null));
+		return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
 	@ExceptionHandler(NoShippedDataFoundException.class)
