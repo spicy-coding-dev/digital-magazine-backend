@@ -13,9 +13,10 @@ import lombok.*;
 @Builder
 public class SubscriptionPlanDto {
 
-    private String planCode;
-    private String name;
-    private SubscriptionType type;
-    private int durationYears;
-    private BigDecimal price;
+	private Long planId;
+	private String planCode;
+	private String name;
+	private SubscriptionType type;
+	private int durationYears;
+	private BigDecimal price;
 }

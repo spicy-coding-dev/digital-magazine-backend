@@ -78,7 +78,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 	}
 
 	private SubscriptionPlanDto toDto(SubscriptionPlan plan) {
-		return SubscriptionPlanDto.builder().planCode(plan.getPlanCode()).name(plan.getName()).type(plan.getType())
-				.durationYears(plan.getDurationYears()).price(plan.getPrice()).build();
+		return SubscriptionPlanDto.builder().planId(plan.getId()).planCode(plan.getPlanCode()).name(plan.getName())
+				.type(plan.getType()).durationYears(plan.getDurationYears()).price(plan.getPrice()).build();
 	}
 }
