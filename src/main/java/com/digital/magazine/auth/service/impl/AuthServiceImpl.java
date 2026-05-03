@@ -119,6 +119,7 @@ public class AuthServiceImpl implements AuthService {
 		sendVerification(user);
 	}
 
+	@Override
 	public String verifyEmail(String token) {
 
 		String maskedToken = (token != null && token.length() > 6) ? token.substring(0, 6) + "***" : "***";
@@ -155,6 +156,7 @@ public class AuthServiceImpl implements AuthService {
 		return "✅ உங்கள் மின்னஞ்சல் வெற்றிகரமாக உறுதிப்படுத்தப்பட்டது";
 	}
 
+	@Override
 	public LoginApiResponse login(LoginRequestDto request, HttpServletResponse resp) {
 
 		String key = request.getEmailOrPhone();
@@ -211,6 +213,7 @@ public class AuthServiceImpl implements AuthService {
 		}
 	}
 
+	@Override
 	public LoginApiResponse refreshToken(HttpServletRequest request) {
 
 		log.info("🔄 Refresh token request received");

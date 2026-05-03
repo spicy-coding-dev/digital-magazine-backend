@@ -184,9 +184,13 @@ public class UserBookServiceImpl implements UserBookService {
 
 	private BookSummaryDto mapToSummaryWithYearRule(Books book, User user, BookCategory category, int currentYear) {
 
-		LocalDateTime publishedDate = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getUpdatedAt();
+		LocalDateTime publishedDate = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
 
-		int publishedYear = publishedDate.getYear();
+		int publishedYear = 0;
+
+		if (publishedDate != null) {
+			publishedYear = publishedDate.getYear();
+		}
 
 		MagazineIssueType issueType = null;
 

@@ -41,4 +41,23 @@ public class SuperAdminInitializer {
 		}
 	}
 
+	@PostConstruct
+	public void initAdmin() {
+
+		log.info("🔍 Checking Admin existence...");
+
+		if (!userRepo.existsByRole(Role.ADMIN)) {
+
+			User admin = User.builder().name("Maanudam").email("mohamedaslam6369@gmail.com").mobile("8438365491")
+					.password(passwordEncoder.encode("Spicy@2025_8438")).role(Role.ADMIN).status(AccountStatus.ACTIVE)
+					.emailVerified(true).createdAt(LocalDateTime.now()).build();
+
+			userRepo.save(admin);
+
+			log.info("👑 Default Admin created successfully");
+		} else {
+			log.info("✅ Admin already exists");
+		}
+	}
+
 }
