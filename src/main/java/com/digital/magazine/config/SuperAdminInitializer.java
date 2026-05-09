@@ -49,7 +49,7 @@ public class SuperAdminInitializer {
 		if (!userRepo.existsByRole(Role.ADMIN)) {
 
 			User admin = User.builder().name("Maanudam").email("mohamedaslam6369@gmail.com").mobile("8438365491")
-					.password(passwordEncoder.encode("Spicy@2025_8438")).role(Role.ADMIN).status(AccountStatus.ACTIVE)
+					.password(passwordEncoder.encode("Spicy@2025")).role(Role.ADMIN).status(AccountStatus.ACTIVE)
 					.emailVerified(true).createdAt(LocalDateTime.now()).build();
 
 			userRepo.save(admin);
