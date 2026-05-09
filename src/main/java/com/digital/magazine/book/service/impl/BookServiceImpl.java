@@ -121,9 +121,11 @@ public class BookServiceImpl implements BookService {
 
 		log.info("✏️ [SAVE REQUEST] bookId={}", bookId);
 
-		if (content == null || content.isBlank()) {
+		if (content == null || content.trim().isEmpty()) {
 			throw new InvalidBookContentException("புத்தக உள்ளடக்கம் காலியாக இருக்கக்கூடாது");
 		}
+
+		bookRepo.findById(bookId).orElseThrow(() -> new InvalidBookContentException("புத்தகம் கிடைக்கவில்லை"));
 
 		BookContent bookContent = bookContentRepo.findByBookId(bookId).map(existing -> {
 			log.info("🔁 Updating existing content | bookId={}", bookId);
