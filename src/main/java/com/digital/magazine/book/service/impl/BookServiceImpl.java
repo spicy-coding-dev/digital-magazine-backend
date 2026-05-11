@@ -125,7 +125,7 @@ public class BookServiceImpl implements BookService {
 			throw new InvalidBookContentException("புத்தக உள்ளடக்கம் காலியாக இருக்கக்கூடாது");
 		}
 
-		bookRepo.findById(bookId).orElseThrow(() -> new InvalidBookContentException("புத்தகம் கிடைக்கவில்லை"));
+		bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("புத்தகம் கிடைக்கவில்லை"));
 
 		BookContent bookContent = bookContentRepo.findByBookId(bookId).map(existing -> {
 			log.info("🔁 Updating existing content | bookId={}", bookId);

@@ -115,7 +115,18 @@ public class RazorpayServiceImpl implements RazorpayService {
 		// 💾 Save payment
 		PaymentTransaction txn = PaymentTransaction.builder().user(user).paymentType(req.getPaymentType())
 				.amount(req.getAmount()).paymentDate(LocalDateTime.now()).status(PaymentStatus.SUCCESS)
-				.gatewayRef(req.getRazorpayPaymentId()).build();
+
+				// 🔥 Razorpay Details
+				.gatewayRef(req.getRazorpayPaymentId()).razorpayOrderId(req.getRazorpayOrderId())
+				.razorpayPaymentId(req.getRazorpayPaymentId())
+
+				// 🔥 Stats Purpose
+				.bookId(req.getBookId()).subscriptionPlanId(req.getPlanId())
+
+				// 🔥 Extra Info
+				.currency("INR")
+
+				.build();
 
 		paymentRepo.save(txn);
 

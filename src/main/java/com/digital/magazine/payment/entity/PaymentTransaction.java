@@ -9,7 +9,6 @@ import com.digital.magazine.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,22 +33,29 @@ public class PaymentTransaction {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// who paid
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne
 	private User user;
 
-	// SUBSCRIPTION / SINGLE_BOOK / DONATION
 	@Enumerated(EnumType.STRING)
 	private PaymentType paymentType;
 
 	private Double amount;
 
-	private LocalDateTime paymentDate;
+	private String currency;
 
-	// SUCCESS / FAILED
+	private String razorpayOrderId;
+
+	private String razorpayPaymentId;
+
+	private String gatewayRef;
+
+	private Long bookId;
+
+	private Long subscriptionPlanId;
+
 	@Enumerated(EnumType.STRING)
 	private PaymentStatus status;
 
-	// Razorpay order / payment id
-	private String gatewayRef;
+	private LocalDateTime paymentDate;
+
 }

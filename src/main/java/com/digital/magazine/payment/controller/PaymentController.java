@@ -40,7 +40,7 @@ public class PaymentController {
 
 		preCheckService.preCheckSingleBook(auth, bookId);
 
-		return ResponseEntity.ok(new ApiResponse<>("OK", "இந்த இதழை வாங்கலாம்"));
+		return ResponseEntity.ok(new ApiResponse<>("இந்த இதழை வாங்கலாம்", "OK"));
 	}
 
 	@PostMapping("/pre-check/subscription")
@@ -51,7 +51,7 @@ public class PaymentController {
 
 		preCheckService.preCheckSubscription(auth, req);
 
-		return ResponseEntity.ok(new ApiResponse<>("OK", "இந்த சந்தாவை வாங்கலாம்"));
+		return ResponseEntity.ok(new ApiResponse<>("இந்த சந்தாவை வாங்கலாம்", "OK"));
 	}
 
 	@PostMapping("/create-order")
