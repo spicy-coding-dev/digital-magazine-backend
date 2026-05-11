@@ -40,8 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				|| path.equals("/api/v1/auth/verify-email") || path.equals("/api/v1/auth/refresh")
 				|| path.equals("/api/v1/auth/forgot-password") || path.equals("/api/v1/auth/reset-password")
 				|| path.equals("/api/v1/super-admin/verify-email") || path.equals("/api/v1/subscriptions/getplans")
-				|| path.startsWith("/api/v1/analytics/guest") || path.startsWith("/swagger-ui")
-				|| path.startsWith("/v3/api-docs") || path.startsWith("/actuator")
+				|| path.startsWith("/api/v1/user") || path.startsWith("/api/v1/analytics/guest")
+				|| path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/actuator")
 				|| path.equals("/api/v1/manage/verify-email")) {
 
 			log.debug("🔓 JWT skipped for public endpoint | path={}", path);

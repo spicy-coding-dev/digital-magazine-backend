@@ -33,9 +33,9 @@ public class SecurityConfiguration {
 						.requestMatchers("/api/v1/auth/register", "/api/v1/auth/verify-email",
 								"/api/v1/auth/user-login", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
 								"/api/v1/auth/reset-password", "/api/v1/super-admin/verify-email", "/api/v1/auth/me",
-								"/api/v1/subscriptions/getplans", "/swagger-ui.html", "/swagger-ui/**",
-								"/v3/api-docs/**", "/api/v1/analytics/guest/**", "/api/v1/user/**", "/actuator/**",
-								"/api/v1/manage/verify-email")
+								"/api/v1/subscriptions/getplans", "/api/v1/user/**", "/swagger-ui.html",
+								"/swagger-ui/**", "/v3/api-docs/**", "/api/v1/analytics/guest/**", "/api/v1/user/**",
+								"/actuator/**", "/api/v1/manage/verify-email")
 						.permitAll() // login
 										// &
 										// register
