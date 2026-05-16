@@ -78,8 +78,14 @@ public class RazorpayServiceImpl implements RazorpayService {
 	public String verifyAndProcessPayment(RazorpayVerifyRequestDto req, Authentication auth) {
 
 		String payload = req.getRazorpayOrderId() + "|" + req.getRazorpayPaymentId();
+		
+		log.info("🔥 SECRET = {}", keySecret);
+		log.info("🔥 ORDER ID = {}", req.getRazorpayOrderId());
+		log.info("🔥 PAYMENT ID = {}", req.getRazorpayPaymentId());
+		log.info("🔥 SIGNATURE = {}", req.getRazorpaySignature());
 
 		boolean isValid = RazorpayUtils.verifySignature(payload, req.getRazorpaySignature(), keySecret);
+//		boolean isValid = true;
 
 		if (!isValid) {
 			log.error("❌ Payment verification failed | orderId={}", req.getRazorpayOrderId());
