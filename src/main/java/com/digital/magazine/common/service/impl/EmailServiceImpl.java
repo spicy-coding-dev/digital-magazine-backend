@@ -3,7 +3,6 @@ package com.digital.magazine.common.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -38,13 +37,134 @@ public class EmailServiceImpl implements EmailService {
 
 			String subject = "📩 உங்கள் மின்னஞ்சல் உறுதிப்படுத்தல்";
 
-			String body = "வணக்கம்,\n\n" + "நீங்கள் எங்கள் டிஜிட்டல் இதழ் தளத்தில் பதிவு செய்ததற்கு நன்றி.\n\n"
-					+ "உங்கள் மின்னஞ்சலை உறுதிப்படுத்த கீழே உள்ள இணைப்பை கிளிக் செய்யவும்:\n\n" + verificationLink
-					+ "\n\n" + "இந்த இணைப்பு 15 நிமிடங்கள் மட்டுமே செல்லுபடியாகும்.\n\n"
-					+ "நீங்கள் இந்த பதிவு செய்யவில்லை என்றால், இந்த மின்னஞ்சலை பொருட்படுத்த வேண்டாம்.\n\n" + "நன்றி,\n"
-					+ "டிஜிட்டல் தமிழ் இதழ் குழு";
+//			String body = "வணக்கம்,\n\n" + "நீங்கள் எங்கள் டிஜிட்டல் இதழ் தளத்தில் பதிவு செய்ததற்கு நன்றி.\n\n"
+//					+ "உங்கள் மின்னஞ்சலை உறுதிப்படுத்த கீழே உள்ள இணைப்பை கிளிக் செய்யவும்:\n\n" + verificationLink
+//					+ "\n\n" + "இந்த இணைப்பு 15 நிமிடங்கள் மட்டுமே செல்லுபடியாகும்.\n\n"
+//					+ "நீங்கள் இந்த பதிவு செய்யவில்லை என்றால், இந்த மின்னஞ்சலை பொருட்படுத்த வேண்டாம்.\n\n" + "நன்றி,\n"
+//					+ "டிஜிட்டல் தமிழ் இதழ் குழு";
 
-			sendEmail(toEmail, subject, body);
+			String body = """
+					<!DOCTYPE html>
+					<html lang="ta">
+					<head>
+					    <meta charset="UTF-8">
+
+					    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+					</head>
+
+					<body style="
+					    font-family: 'Noto Sans Tamil', sans-serif;
+					    background:#f4f4f4;
+					    padding:20px;
+					    margin:0;
+					">
+
+					    <div style="
+					        max-width:600px;
+					        margin:auto;
+					        background:white;
+					        padding:35px;
+					        border-radius:14px;
+					        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					    ">
+
+					        <h2 style="
+					            color:#1e293b;
+					            text-align:center;
+					            margin-bottom:25px;
+					            font-size:28px;
+					            font-weight:700;
+					        ">
+					            📚 டிஜிட்டல் தமிழ் இதழ்
+					        </h2>
+
+					        <p style="
+					            font-size:17px;
+					            color:#222;
+					            line-height:1.8;
+					        ">
+					            வணக்கம்,
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            நீங்கள் எங்கள் டிஜிட்டல் இதழ் தளத்தில் பதிவு செய்ததற்கு நன்றி.
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            உங்கள் மின்னஞ்சலை உறுதிப்படுத்த கீழே உள்ள பட்டனை கிளிக் செய்யவும்:
+					        </p>
+
+					        <div style="text-align:center; margin:35px 0;">
+
+					            <a href="%s"
+					               style="
+					                    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+					                    color:white;
+					                    padding:15px 30px;
+					                    text-decoration:none;
+					                    border-radius:10px;
+					                    display:inline-block;
+					                    font-size:16px;
+					                    font-weight:600;
+					                    letter-spacing:0.3px;
+					               ">
+					                மின்னஞ்சலை உறுதிப்படுத்து
+					            </a>
+
+					        </div>
+
+					        <p style="
+					            color:#555;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            ⏰ இந்த இணைப்பு 15 நிமிடங்கள் மட்டுமே செல்லுபடியாகும்.
+					        </p>
+
+					        <p style="
+					            color:#777;
+					            font-size:14px;
+					            line-height:1.8;
+					        ">
+					            நீங்கள் இந்த பதிவு செய்யவில்லை என்றால்,
+					            இந்த மின்னஞ்சலை பொருட்படுத்த வேண்டாம்.
+					        </p>
+
+					        <hr style="
+					            margin:30px 0;
+					            border:none;
+					            border-top:1px solid #e5e7eb;
+					        ">
+
+					        <p style="
+					            text-align:center;
+					            color:#666;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            நன்றி,<br>
+					            <b style="color:#111827;">
+					                டிஜிட்டல் தமிழ் இதழ் குழு
+					            </b>
+					        </p>
+
+					    </div>
+
+					</body>
+					</html>
+					"""
+					.formatted(verificationLink);
+
+			sendMail(toEmail, subject, body);
 
 			log.info("Verification email sent successfully to {}", toEmail);
 
@@ -70,7 +190,7 @@ public class EmailServiceImpl implements EmailService {
 					+ "நீங்கள் இந்த பதிவு செய்யவில்லை என்றால், இந்த மின்னஞ்சலை பொருட்படுத்த வேண்டாம்.\n\n" + "நன்றி,\n"
 					+ "டிஜிட்டல் தமிழ் இதழ் குழு";
 
-			sendEmail(toEmail, subject, body);
+			sendMail(toEmail, subject, body);
 
 			log.info("Verification email sent successfully to {}", toEmail);
 
@@ -100,7 +220,7 @@ public class EmailServiceImpl implements EmailService {
 					+ "தயவுசெய்து இந்த மின்னஞ்சலை புறக்கணிக்கவும்.\n\n" + "நன்றி,\n"
 					+ "Digital Tamil Magazine – Admin Team";
 
-			sendEmail(toEmail, subject, body);
+			sendMail(toEmail, subject, body);
 
 			log.info("✅ Admin verification email sent successfully to {}", toEmail);
 
@@ -121,13 +241,132 @@ public class EmailServiceImpl implements EmailService {
 
 			String subject = "🔐 கடவுச்சொல் மாற்றம்";
 
-			String body = "வணக்கம்,\n\n" + "உங்கள் கணக்கிற்கான கடவுச்சொல் மாற்ற கோரிக்கை பெறப்பட்டுள்ளது.\n\n"
-					+ "கடவுச்சொல்லை மாற்ற கீழே உள்ள இணைப்பை கிளிக் செய்யவும்:\n\n" + resetLink + "\n\n"
-					+ "இந்த இணைப்பு 15 நிமிடங்கள் மட்டுமே செல்லுபடியாகும்.\n\n"
-					+ "இந்த கோரிக்கை நீங்கள் செய்யவில்லை என்றால், தயவுசெய்து இந்த மின்னஞ்சலை புறக்கணிக்கவும்.\n\n"
-					+ "நன்றி,\n" + "டிஜிட்டல் தமிழ் இதழ் குழு";
+			String body = """
+					<!DOCTYPE html>
+					<html lang="ta">
 
-			sendEmail(toEmail, subject, body);
+					<head>
+					    <meta charset="UTF-8">
+
+					    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+					</head>
+
+					<body style="
+					    margin:0;
+					    padding:20px;
+					    background:#f4f4f4;
+					    font-family:'Noto Sans Tamil', sans-serif;
+					">
+
+					    <div style="
+					        max-width:600px;
+					        margin:auto;
+					        background:#ffffff;
+					        border-radius:14px;
+					        padding:35px;
+					        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					    ">
+
+					        <h2 style="
+					            text-align:center;
+					            color:#1e293b;
+					            font-size:28px;
+					            margin-bottom:25px;
+					            font-weight:700;
+					        ">
+					            🔐 கடவுச்சொல் மாற்றம்
+					        </h2>
+
+					        <p style="
+					            font-size:16px;
+					            color:#333;
+					            line-height:1.9;
+					        ">
+					            வணக்கம்,
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            உங்கள் கணக்கிற்கான கடவுச்சொல் மாற்ற கோரிக்கை பெறப்பட்டுள்ளது.
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            கடவுச்சொல்லை மாற்ற கீழே உள்ள பட்டனை கிளிக் செய்யவும்:
+					        </p>
+
+					        <div style="
+					            text-align:center;
+					            margin:35px 0;
+					        ">
+
+					            <a href="%s"
+					               style="
+					                    background:linear-gradient(135deg,#dc2626,#b91c1c);
+					                    color:white;
+					                    text-decoration:none;
+					                    padding:15px 30px;
+					                    border-radius:10px;
+					                    display:inline-block;
+					                    font-size:16px;
+					                    font-weight:600;
+					               ">
+					                கடவுச்சொல்லை மாற்றவும்
+					            </a>
+
+					        </div>
+
+					        <p style="
+					            color:#555;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            ⏰ இந்த இணைப்பு 15 நிமிடங்கள் மட்டுமே செல்லுபடியாகும்.
+					        </p>
+
+					        <p style="
+					            color:#777;
+					            font-size:14px;
+					            line-height:1.8;
+					        ">
+					            இந்த கோரிக்கை நீங்கள் செய்யவில்லை என்றால்,
+					            தயவுசெய்து இந்த மின்னஞ்சலை புறக்கணிக்கவும்.
+					        </p>
+
+					        <hr style="
+					            margin:30px 0;
+					            border:none;
+					            border-top:1px solid #e5e7eb;
+					        ">
+
+					        <p style="
+					            text-align:center;
+					            color:#666;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            நன்றி,<br>
+
+					            <b style="color:#111827;">
+					                டிஜிட்டல் தமிழ் இதழ் குழு
+					            </b>
+					        </p>
+
+					    </div>
+
+					</body>
+
+					</html>
+					"""
+					.formatted(resetLink);
+
+			sendMail(toEmail, subject, body);
 
 			log.info("Reset password email sent successfully to {}", toEmail);
 
@@ -147,12 +386,123 @@ public class EmailServiceImpl implements EmailService {
 
 			String subject = "🚫 உங்கள் கணக்கு தற்காலிகமாக முடக்கப்பட்டுள்ளது";
 
-			String body = "வணக்கம்,\n\n" + "உங்கள் கணக்கு நிர்வாகியின் மூலம் தற்காலிகமாக முடக்கப்பட்டுள்ளது.\n\n"
-					+ "🔍 முடக்கப்பட்ட காரணம்:\n" + reason + "\n\n"
-					+ "இந்த பிரச்சனை குறித்து மேலதிக விளக்கம் அல்லது உதவி தேவைப்பட்டால்,\n"
-					+ "தயவுசெய்து நிர்வாகியை தொடர்பு கொள்ளவும்.\n\n" + "நன்றி,\n" + "டிஜிட்டல் தமிழ் இதழ் குழு";
+			String body = """
+					<!DOCTYPE html>
+					<html lang="ta">
 
-			sendEmail(toEmail, subject, body);
+					<head>
+					    <meta charset="UTF-8">
+
+					    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+					</head>
+
+					<body style="
+					    margin:0;
+					    padding:20px;
+					    background:#f4f4f4;
+					    font-family:'Noto Sans Tamil', sans-serif;
+					">
+
+					    <div style="
+					        max-width:600px;
+					        margin:auto;
+					        background:#ffffff;
+					        border-radius:14px;
+					        padding:35px;
+					        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					    ">
+
+					        <h2 style="
+					            text-align:center;
+					            color:#b91c1c;
+					            font-size:28px;
+					            margin-bottom:25px;
+					            font-weight:700;
+					        ">
+					            🚫 கணக்கு தற்காலிகமாக முடக்கப்பட்டுள்ளது
+					        </h2>
+
+					        <p style="
+					            font-size:16px;
+					            color:#333;
+					            line-height:1.9;
+					        ">
+					            வணக்கம்,
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            உங்கள் கணக்கு நிர்வாகியின் மூலம் தற்காலிகமாக முடக்கப்பட்டுள்ளது.
+					        </p>
+
+					        <div style="
+					            background:#fef2f2;
+					            border-left:5px solid #dc2626;
+					            padding:18px;
+					            border-radius:10px;
+					            margin:25px 0;
+					        ">
+
+					            <p style="
+					                margin:0;
+					                font-size:16px;
+					                color:#991b1b;
+					                font-weight:600;
+					            ">
+					                🔍 முடக்கப்பட்ட காரணம்:
+					            </p>
+
+					            <p style="
+					                margin-top:10px;
+					                color:#444;
+					                font-size:15px;
+					                line-height:1.8;
+					            ">
+					                %s
+					            </p>
+
+					        </div>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            இந்த பிரச்சனை குறித்து மேலதிக விளக்கம் அல்லது உதவி தேவைப்பட்டால்,
+					            தயவுசெய்து நிர்வாகியை தொடர்பு கொள்ளவும்.
+					        </p>
+
+					        <hr style="
+					            margin:30px 0;
+					            border:none;
+					            border-top:1px solid #e5e7eb;
+					        ">
+
+					        <p style="
+					            text-align:center;
+					            color:#666;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            நன்றி,<br>
+
+					            <b style="color:#111827;">
+					                டிஜிட்டல் தமிழ் இதழ் குழு
+					            </b>
+					        </p>
+
+					    </div>
+
+					</body>
+
+					</html>
+					"""
+					.formatted(reason);
+
+			sendMail(toEmail, subject, body);
 
 			log.info("User blocked mail sent successfully to {}", toEmail);
 
@@ -171,14 +521,132 @@ public class EmailServiceImpl implements EmailService {
 
 			String subject = "✅ உங்கள் கணக்கு மீண்டும் செயல்படுத்தப்பட்டுள்ளது";
 
-			String body = "வணக்கம்,\n\n"
-					+ "உங்கள் கணக்கு மீண்டும் நிர்வாகியால் வெற்றிகரமாக செயல்படுத்தப்பட்டுள்ளது.\n\n"
-					+ "🔍 மீண்டும் செயல்படுத்த காரணம்:\n" + reason + "\n\n"
-					+ "இப்போது நீங்கள் உங்கள் கணக்கில் உள்நுழைந்து சேவைகளை பயன்படுத்தலாம்.\n\n"
-					+ "எந்தவொரு உதவி தேவைப்பட்டாலும் எங்களை தொடர்பு கொள்ளுங்கள்.\n\n" + "நன்றி,\n"
-					+ "டிஜிட்டல் தமிழ் இதழ் குழு";
+			String body = """
+					<!DOCTYPE html>
+					<html lang="ta">
 
-			sendEmail(toEmail, subject, body);
+					<head>
+					    <meta charset="UTF-8">
+
+					    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+					</head>
+
+					<body style="
+					    margin:0;
+					    padding:20px;
+					    background:#f4f4f4;
+					    font-family:'Noto Sans Tamil', sans-serif;
+					">
+
+					    <div style="
+					        max-width:600px;
+					        margin:auto;
+					        background:#ffffff;
+					        border-radius:14px;
+					        padding:35px;
+					        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					    ">
+
+					        <h2 style="
+					            text-align:center;
+					            color:#15803d;
+					            font-size:28px;
+					            margin-bottom:25px;
+					            font-weight:700;
+					        ">
+					            ✅ கணக்கு மீண்டும் செயல்படுத்தப்பட்டது
+					        </h2>
+
+					        <p style="
+					            font-size:16px;
+					            color:#333;
+					            line-height:1.9;
+					        ">
+					            வணக்கம்,
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            உங்கள் கணக்கு மீண்டும் நிர்வாகியால் வெற்றிகரமாக செயல்படுத்தப்பட்டுள்ளது.
+					        </p>
+
+					        <div style="
+					            background:#ecfdf5;
+					            border-left:5px solid #22c55e;
+					            padding:18px;
+					            border-radius:10px;
+					            margin:25px 0;
+					        ">
+
+					            <p style="
+					                margin:0;
+					                font-size:16px;
+					                color:#166534;
+					                font-weight:600;
+					            ">
+					                🔍 மீண்டும் செயல்படுத்த காரணம்:
+					            </p>
+
+					            <p style="
+					                margin-top:10px;
+					                color:#444;
+					                font-size:15px;
+					                line-height:1.8;
+					            ">
+					                %s
+					            </p>
+
+					        </div>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            இப்போது நீங்கள் உங்கள் கணக்கில் உள்நுழைந்து
+					            சேவைகளை பயன்படுத்தலாம்.
+					        </p>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            எந்தவொரு உதவி தேவைப்பட்டாலும்
+					            எங்களை தொடர்பு கொள்ளுங்கள்.
+					        </p>
+
+					        <hr style="
+					            margin:30px 0;
+					            border:none;
+					            border-top:1px solid #e5e7eb;
+					        ">
+
+					        <p style="
+					            text-align:center;
+					            color:#666;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            நன்றி,<br>
+
+					            <b style="color:#111827;">
+					                டிஜிட்டல் தமிழ் இதழ் குழு
+					            </b>
+					        </p>
+
+					    </div>
+
+					</body>
+
+					</html>
+					"""
+					.formatted(reason);
+
+			sendMail(toEmail, subject, body);
 
 			log.info("User unblocked mail sent successfully to {}", toEmail);
 
@@ -187,24 +655,28 @@ public class EmailServiceImpl implements EmailService {
 		}
 	}
 
-	@Override
-	public void sendEmail(String to, String subject, String content) {
-
-		log.debug("📤 Preparing normal email | to={}, subject={}", to, subject);
+	public void sendMail(String to, String subject, String content) {
 
 		try {
-			SimpleMailMessage message = new SimpleMailMessage();
-			message.setFrom(fromEmail);
-			message.setTo(to);
-			message.setSubject(subject);
-			message.setText(content);
+
+			MimeMessage message = mailSender.createMimeMessage();
+
+			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+			helper.setFrom(fromEmail);
+			helper.setTo(to);
+			helper.setSubject(subject);
+
+			helper.setText(content, true); // ✅ HTML enable
 
 			mailSender.send(message);
 
-			log.info("✅ Email sent successfully | to={}", to);
+			log.info("✅ Email sent | to={}", to);
 
 		} catch (Exception e) {
+
 			log.error("❌ Failed to send email | to={}, reason={}", to, e.getMessage(), e);
+
 			throw new RuntimeException("Email sending failed");
 		}
 	}

@@ -58,18 +58,18 @@ public class PaymentPreCheckServiceImpl implements PaymentPreCheckService {
 		log.info("🔍 Checking book rules | bookId={}", bookId);
 
 		if (!book.isPaid())
-			throw new FreeBookException("இந்த புத்தகம் இலவசம்");
+			throw new FreeBookException("இந்த புத்தகம் இலவசமாக கிடைக்கிறது");
 
 		if (book.getStatus() != BookStatus.PUBLISHED)
-			throw new BookNotPurchasableException("இந்த புத்தகம் வாங்க முடியாது");
+			throw new BookNotPurchasableException("இந்த புத்தகம் தற்போது வாங்க முடியாது");
 
 		if (purchaseRepo.existsByUserAndBook(user, book))
-			throw new AlreadyPurchasedException("இதழ் ஏற்கனவே வாங்கப்பட்டுள்ளது");
+			throw new AlreadyPurchasedException("இந்த இதழை நீங்கள் ஏற்கனவே வாங்கியுள்ளீர்கள்");
 
 		UserSubscription sub = subscriptionRepo.findActiveByUser(user).orElse(null);
 
 		if (sub != null && sub.getPlan().getType() == SubscriptionType.DIGITAL)
-			throw new DigitalSubscriptionExistsException("Digital சந்தா உள்ளது");
+			throw new DigitalSubscriptionExistsException("உங்களுக்கு ஏற்கனவே டிஜிட்டல் சந்தா உள்ளது");
 
 		log.info("✅ Pre-check single book PASSED");
 	}

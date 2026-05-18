@@ -14,7 +14,9 @@ public interface EmailService {
 
 	public void sendUserUnblockedMail(String toEmail, String reason);
 
-	void sendEmail(String to, String subject, String content);
+//	public void sendSubscriptionBuyMail(String toEmail, String planName);
+
+	void sendMail(String to, String subject, String content);
 
 	public void sendMailWithAttachment(String to, String subject, String content, byte[] attachmentBytes,
 			String fileName);

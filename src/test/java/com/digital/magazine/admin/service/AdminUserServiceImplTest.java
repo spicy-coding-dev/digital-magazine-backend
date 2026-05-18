@@ -145,7 +145,7 @@ class AdminUserServiceImplTest {
 
 		service.sendBulkMailByStatus(AccountStatus.ACTIVE, "Subject", "Content", null, null);
 
-		verify(emailService).sendEmail(eq("active@test.com"), eq("Subject"), eq("Content"));
+		verify(emailService).sendMail(eq("active@test.com"), eq("Subject"), eq("Content"));
 	}
 
 	// --------------------------------------------------
@@ -174,6 +174,6 @@ class AdminUserServiceImplTest {
 
 		service.sendBulkMailByStatus(AccountStatus.BLOCKED, "Subject", "Content", null, null);
 
-		verify(emailService, never()).sendEmail(any(), any(), any());
+		verify(emailService, never()).sendMail(any(), any(), any());
 	}
 }

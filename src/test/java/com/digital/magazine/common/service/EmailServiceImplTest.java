@@ -62,7 +62,7 @@ class EmailServiceImplTest {
 
 		doNothing().when(mailSender).send(any(SimpleMailMessage.class));
 
-		emailService.sendEmail("user@test.com", "Test Subject", "Test Content");
+		emailService.sendMail("user@test.com", "Test Subject", "Test Content");
 
 		verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
 	}
@@ -74,7 +74,7 @@ class EmailServiceImplTest {
 		doThrow(new RuntimeException("SMTP error")).when(mailSender).send(any(SimpleMailMessage.class));
 
 		RuntimeException ex = assertThrows(RuntimeException.class,
-				() -> emailService.sendEmail("user@test.com", "Test Subject", "Test Content"));
+				() -> emailService.sendMail("user@test.com", "Test Subject", "Test Content"));
 
 		assertEquals("Email sending failed", ex.getMessage());
 	}

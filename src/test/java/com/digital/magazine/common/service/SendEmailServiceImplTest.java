@@ -56,7 +56,7 @@ class SendEmailServiceImplTest {
 		sendEmailService.sendBulkMail(MailTargetType.ACCOUNT_STATUS, AccountStatus.ACTIVE, SUBJECT, CONTENT, null,
 				null);
 
-		verify(emailService, times(2)).sendEmail(anyString(), eq(SUBJECT), eq(CONTENT));
+		verify(emailService, times(2)).sendMail(anyString(), eq(SUBJECT), eq(CONTENT));
 
 		verify(emailService, never()).sendMailWithAttachment(any(), any(), any(), any(), any());
 	}
@@ -70,7 +70,7 @@ class SendEmailServiceImplTest {
 
 		sendEmailService.sendBulkMail(MailTargetType.DIGITAL_SUBSCRIPTION, null, SUBJECT, CONTENT, null, null);
 
-		verify(emailService, times(1)).sendEmail("digital@test.com", SUBJECT, CONTENT);
+		verify(emailService, times(1)).sendMail("digital@test.com", SUBJECT, CONTENT);
 	}
 
 	// ✅ SINGLE PURCHASE → attachment email
@@ -107,12 +107,12 @@ class SendEmailServiceImplTest {
 		when(userRepo.findEmailByStatusAndRole(AccountStatus.ACTIVE, Role.USER))
 				.thenReturn(List.of("a@test.com", "b@test.com"));
 
-		doThrow(new RuntimeException("SMTP error")).when(emailService).sendEmail("a@test.com", SUBJECT, CONTENT);
+		doThrow(new RuntimeException("SMTP error")).when(emailService).sendMail("a@test.com", SUBJECT, CONTENT);
 
 		sendEmailService.sendBulkMail(MailTargetType.ACCOUNT_STATUS, AccountStatus.ACTIVE, SUBJECT, CONTENT, null,
 				null);
 
 		// both attempted
-		verify(emailService, times(2)).sendEmail(anyString(), eq(SUBJECT), eq(CONTENT));
+		verify(emailService, times(2)).sendMail(anyString(), eq(SUBJECT), eq(CONTENT));
 	}
 }

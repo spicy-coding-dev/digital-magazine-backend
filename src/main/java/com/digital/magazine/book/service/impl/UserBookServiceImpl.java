@@ -93,6 +93,8 @@ public class UserBookServiceImpl implements UserBookService {
 
 		log.info("📚 Fetch books by category | label={}", categoryLabel);
 
+		System.out.println("login user " + loginUser);
+
 		final User user = (loginUser == null) ? null
 				: userRepo.findByEmail(loginUser.getName())
 						.orElseThrow(() -> new UserNotFoundException("User not found"));

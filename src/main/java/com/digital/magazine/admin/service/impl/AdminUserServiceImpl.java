@@ -111,7 +111,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 					emailService.sendMailWithAttachment(user.getEmail(), subject, content, attachmentBytes, fileName);
 				} else {
 					log.debug("📨 Sending normal mail to {}", user.getEmail());
-					emailService.sendEmail(user.getEmail(), subject, content);
+					emailService.sendMail(user.getEmail(), subject, content);
 				}
 
 				log.info("✅ Mail sent | email={}, status={}", user.getEmail(), status);

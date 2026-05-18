@@ -72,7 +72,7 @@ public class SendEmailServiceImpl implements SendEmailService {
 					mailSender.sendMailWithAttachment(email, subject, content, attachment, fileName);
 				} else {
 					log.debug("📨 Sending normal mail to {}", email);
-					mailSender.sendEmail(email, subject, content);
+					mailSender.sendMail(email, subject, content);
 				}
 				log.info("✅ Mail sent | email={}", email);
 			} catch (Exception e) {

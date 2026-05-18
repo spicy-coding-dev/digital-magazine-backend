@@ -59,7 +59,12 @@ public class AccessServiceImpl implements AccessService {
 	}
 
 	private boolean hasDigitalSubscription(Long userId) {
-		return userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(userId, SubscriptionType.DIGITAL,
+
+		boolean exists = userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(userId, SubscriptionType.DIGITAL,
 				SubscriptionStatus.ACTIVE);
+
+		log.info("🔥 DIGITAL SUB CHECK | userId={} | result={}", userId, exists);
+
+		return exists;
 	}
 }
