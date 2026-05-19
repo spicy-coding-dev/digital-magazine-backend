@@ -14,6 +14,7 @@ import com.digital.magazine.common.exception.DigitalSubscriptionExistsException;
 import com.digital.magazine.common.exception.FreeBookException;
 import com.digital.magazine.common.exception.NoBooksFoundException;
 import com.digital.magazine.common.exception.UserNotFoundException;
+import com.digital.magazine.common.service.EmailService;
 import com.digital.magazine.subscription.entity.MagazinePurchase;
 import com.digital.magazine.subscription.entity.UserSubscription;
 import com.digital.magazine.subscription.enums.SubscriptionType;
@@ -35,6 +36,7 @@ public class MagazinePurchaseServiceImpl implements MagazinePurchaseService {
 	private final UserRepository userRepo;
 	private final BookRepository bookRepo;
 	private final UserSubscriptionRepository userSubscriptionRepo;
+	private final EmailService emailService;
 
 	@Override
 	public String purchase(Authentication auth, Long bookId) {
@@ -82,6 +84,12 @@ public class MagazinePurchaseServiceImpl implements MagazinePurchaseService {
 		purchaseRepo.save(mp);
 
 		log.info("Single magazine purchased successfully | user={} | book={}", user.getEmail(), book.getId());
+
+		emailService.sendSingleMagazineBuyMail(mp.getUser().getEmail(), mp.getBook().getTitle(), mp.getUser().getName(),
+				mp.getBook().getMagazineNo(), mp.getPrice(), mp.getPurchasedAt());
+
+		log.info("📧 SingleMagazine Buy confirmation mail sent | user={} | magazineName={}", mp.getUser().getEmail(),
+				mp.getBook().getTitle());
 
 		// 🔥 SUCCESS MESSAGE
 		return "நீங்கள் வாங்கிய இதழ் : " + book.getTitle() + " (இதழ் எண் : " + book.getMagazineNo()

@@ -1,5 +1,8 @@
 package com.digital.magazine.common.service.impl;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -653,6 +656,327 @@ public class EmailServiceImpl implements EmailService {
 		} catch (Exception e) {
 			log.error("Failed to send user unblocked mail to {}", toEmail, e);
 		}
+	}
+
+	@Async("taskExecutor")
+	@Override
+	public void sendSubscriptionBuyMail(String toEmail, String planName, String userName, LocalDate startDate,
+			LocalDate endDate) {
+
+		log.info("Sending subscription activation mail to {}", toEmail);
+
+		try {
+
+			String subject = "🎉 உங்கள் சந்தா வெற்றிகரமாக செயல்படுத்தப்பட்டது | Digital Magazine";
+
+			String body = """
+					      <!DOCTYPE html>
+					      <html lang="ta">
+
+					      <head>
+					          <meta charset="UTF-8">
+
+					          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+					      </head>
+
+					      <body style="
+					          margin:0;
+					          padding:20px;
+					          background:#f4f4f4;
+					          font-family:'Noto Sans Tamil', sans-serif;
+					      ">
+
+					          <div style="
+					              max-width:600px;
+					              margin:auto;
+					              background:#ffffff;
+					              border-radius:16px;
+					              padding:35px;
+					              box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					          ">
+
+					              <h2 style="
+					                  text-align:center;
+					                  color:#2563eb;
+					                  font-size:30px;
+					                  margin-bottom:25px;
+					                  font-weight:700;
+					              ">
+					                  🎉 சந்தா வெற்றிகரமாக செயல்படுத்தப்பட்டது
+					              </h2>
+
+					              <p style="
+					                  font-size:16px;
+					                  color:#333;
+					                  line-height:1.9;
+					              ">
+					                  வணக்கம் <b>%s</b>,
+					              </p>
+
+					              <p style="
+					                  font-size:16px;
+					                  color:#444;
+					                  line-height:1.9;
+					              ">
+					                  உங்கள்
+					                  <b style="color:#2563eb;">"%s"</b>
+					                  சந்தா வெற்றிகரமாக செயல்படுத்தப்பட்டுள்ளது. 🎉
+					              </p>
+
+					              <div style="
+					                  background:#eff6ff;
+					                  border-left:5px solid #2563eb;
+					                  padding:20px;
+					                  border-radius:12px;
+					                  margin:30px 0;
+					              ">
+
+					                  <p style="
+					                      margin:0 0 12px 0;
+					                      color:#1e3a8a;
+					                      font-size:16px;
+					                      font-weight:600;
+					                  ">
+					                      📅 சந்தா விவரங்கள்
+					                  </p>
+
+					                  <p style="
+					                      margin:8px 0;
+					                      color:#444;
+					                      font-size:15px;
+					                  ">
+					                      <b>தொடக்க தேதி:</b> %s
+					                  </p>
+
+					                  <p style="
+					                      margin:8px 0;
+					                      color:#444;
+					                      font-size:15px;
+					                  ">
+					                      <b>முடிவு தேதி:</b> %s
+					                  </p>
+
+					              </div>
+
+					              <p style="
+					                  font-size:15px;
+					                  color:#555;
+					                  line-height:1.9;
+					              ">
+					                  இப்போது நீங்கள் Digital Magazine உள்ளடக்கங்களை
+					                  முழுமையாக பயன்படுத்தலாம்.
+					              </p>
+
+					              <p style="
+					                  font-size:15px;
+					                  color:#555;
+					                  line-height:1.9;
+					              ">
+					                  எங்களை தேர்வு செய்ததற்கு நன்றி 🙏
+					              </p>
+
+					              <hr style="
+					                  margin:30px 0;
+					                  border:none;
+					                  border-top:1px solid #e5e7eb;
+					              ">
+
+					              <p style="
+					                  text-align:center;
+					                  color:#666;
+					                  font-size:15px;
+					                  line-height:1.8;
+					              ">
+					                  அன்புடன்,<br>
+
+					                  <b style="color:#111827;">
+					                      Digital Magazine Team
+					                  </b>
+					              </p>
+
+					          </div>
+
+					      </body>
+
+					      </html>
+					"""
+					.formatted(userName, planName, startDate, endDate);
+
+			sendMail(toEmail, subject, body);
+
+			log.info("Subscription activation mail sent successfully to {}", toEmail);
+
+		} catch (Exception e) {
+			log.error("Failed to send subscription activation mail to {}", toEmail, e);
+		}
+
+	}
+
+	@Async("taskExecutor")
+	@Override
+	public void sendSingleMagazineBuyMail(String toEmail, String magazineName, String userName, Long magazineNo,
+			Double magazinePrice, LocalDateTime purchaseDate) {
+
+		log.info("Sending single magazine purchase mail to {}", toEmail);
+
+		try {
+
+			String subject = "📘 நீங்கள் வாங்கிய இதழ் வெற்றிகரமாக திறக்கப்பட்டது | Digital Magazine";
+
+			String body = """
+					<!DOCTYPE html>
+					<html lang="ta">
+
+					<head>
+					    <meta charset="UTF-8">
+
+					    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+					</head>
+
+					<body style="
+					    margin:0;
+					    padding:20px;
+					    background:#f4f4f4;
+					    font-family:'Noto Sans Tamil', sans-serif;
+					">
+
+					    <div style="
+					        max-width:600px;
+					        margin:auto;
+					        background:#ffffff;
+					        border-radius:16px;
+					        padding:35px;
+					        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					    ">
+
+					        <h2 style="
+					            text-align:center;
+					            color:#7c3aed;
+					            font-size:30px;
+					            margin-bottom:25px;
+					            font-weight:700;
+					        ">
+					            📘 இதழ் வெற்றிகரமாக வாங்கப்பட்டது
+					        </h2>
+
+					        <p style="
+					            font-size:16px;
+					            color:#333;
+					            line-height:1.9;
+					        ">
+					            வணக்கம் <b>%s</b>,
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            நீங்கள் வாங்கிய இதழ் வெற்றிகரமாக செயல்படுத்தப்பட்டுள்ளது. 🎉
+					        </p>
+
+					        <div style="
+					            background:#f5f3ff;
+					            border-left:5px solid #7c3aed;
+					            padding:20px;
+					            border-radius:12px;
+					            margin:30px 0;
+					        ">
+
+					            <p style="
+					                margin:0 0 15px 0;
+					                color:#5b21b6;
+					                font-size:16px;
+					                font-weight:600;
+					            ">
+					                📖 இதழ் விவரங்கள்
+					            </p>
+
+					            <p style="
+					                margin:8px 0;
+					                color:#444;
+					                font-size:15px;
+					            ">
+					                <b>இதழ் பெயர்:</b> %s
+					            </p>
+
+					            <p style="
+					                margin:8px 0;
+					                color:#444;
+					                font-size:15px;
+					            ">
+					                <b>இதழ் எண்:</b> %s
+					            </p>
+
+					            <p style="
+					                margin:8px 0;
+					                color:#444;
+					                font-size:15px;
+					            ">
+					                <b>கட்டணம்:</b> ₹%s
+					            </p>
+
+					            <p style="
+					                margin:8px 0;
+					                color:#444;
+					                font-size:15px;
+					            ">
+					                <b>வாங்கிய தேதி:</b> %s
+					            </p>
+
+					        </div>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            இப்போது இந்த இதழை உங்கள் கணக்கில்
+					            முழுமையாக படிக்கலாம்.
+					        </p>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            எங்களை தேர்வு செய்ததற்கு நன்றி 🙏
+					        </p>
+
+					        <hr style="
+					            margin:30px 0;
+					            border:none;
+					            border-top:1px solid #e5e7eb;
+					        ">
+
+					        <p style="
+					            text-align:center;
+					            color:#666;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            அன்புடன்,<br>
+
+					            <b style="color:#111827;">
+					                Digital Magazine Team
+					            </b>
+					        </p>
+
+					    </div>
+
+					</body>
+
+					</html>
+					"""
+					.formatted(userName, magazineName, magazineNo, magazinePrice, purchaseDate);
+			sendMail(toEmail, subject, body);
+
+			log.info("Single magazine purchase mail sent successfully to {}", toEmail);
+
+		} catch (Exception e) {
+			log.error("Failed to send single magazine purchase mail to {}", toEmail, e);
+		}
+
 	}
 
 	public void sendMail(String to, String subject, String content) {

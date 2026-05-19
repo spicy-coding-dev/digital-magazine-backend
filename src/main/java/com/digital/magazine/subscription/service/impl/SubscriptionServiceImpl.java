@@ -12,6 +12,7 @@ import com.digital.magazine.common.exception.DuplicateSubscriptionException;
 import com.digital.magazine.common.exception.SubscriptionNotAllowedException;
 import com.digital.magazine.common.exception.SubscriptionPlanNotFoundException;
 import com.digital.magazine.common.exception.UserNotFoundException;
+import com.digital.magazine.common.service.EmailService;
 import com.digital.magazine.subscription.dto.BuySubscriptionRequest;
 import com.digital.magazine.subscription.entity.PrintDelivery;
 import com.digital.magazine.subscription.entity.SubscriptionPlan;
@@ -41,6 +42,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 	private final UserAddressRepository addressRepo;
 	private final SubscriptionPlanRepository subscriptionPlanRepo;
 	private final UserRepository userRepo;
+	private final EmailService emailService;
 
 	@Override
 	public String buy(BuySubscriptionRequest req, Authentication auth) {
@@ -96,6 +98,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 		log.info("✅ Subscription activated | user={} | plan={}", user.getEmail(), plan.getName());
 
+		emailService.sendSubscriptionBuyMail(sub.getUser().getEmail(), sub.getPlan().getName(), sub.getUser().getName(),
+				sub.getStartDate(), sub.getEndDate());
+
+		log.info("📧 Subscription confirmation mail sent | user={} | plan={}", sub.getUser().getEmail(),
+				sub.getPlan().getName());
+
 		// 🔥 SUCCESS MESSAGE (TAMIL)
 		return "நீங்கள் '" + plan.getName() + "' சந்தாவை " + sub.getEndDate()
 				+ " வரை வெற்றிகரமாக செயல்படுத்தியுள்ளீர்கள்";
@@ -134,6 +142,5 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 		log.info("Print deliveries generated | subscription={}", sub.getId());
 	}
-	
 
 }

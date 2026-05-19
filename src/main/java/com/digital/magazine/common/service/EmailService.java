@@ -1,5 +1,8 @@
 package com.digital.magazine.common.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 public interface EmailService {
 
 	void sendVerificationEmail(String toEmail, String token);
@@ -14,7 +17,11 @@ public interface EmailService {
 
 	public void sendUserUnblockedMail(String toEmail, String reason);
 
-//	public void sendSubscriptionBuyMail(String toEmail, String planName);
+	public void sendSubscriptionBuyMail(String toEmail, String planName, String userName, LocalDate startDate,
+			LocalDate endDate);
+
+	public void sendSingleMagazineBuyMail(String toEmail, String magazineName, String userName, Long magazineNo,
+			Double magazinePrice, LocalDateTime purchaseDate);
 
 	void sendMail(String to, String subject, String content);
 
