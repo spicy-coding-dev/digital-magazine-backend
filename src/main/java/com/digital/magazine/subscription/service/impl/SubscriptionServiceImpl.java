@@ -98,8 +98,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 		log.info("✅ Subscription activated | user={} | plan={}", user.getEmail(), plan.getName());
 
-		emailService.sendSubscriptionBuyMail(sub.getUser().getEmail(), sub.getPlan().getName(), sub.getUser().getName(),
-				sub.getStartDate(), sub.getEndDate());
+		if (sub.getPlan().getType() == SubscriptionType.PRINT) {
+			emailService.sendPrintSubscriptionBuyMail(sub.getUser().getEmail(), sub.getPlan().getType(),
+					sub.getUser().getName(), sub.getDeliveryAddress(), sub.getStartDate(), sub.getEndDate());
+		} else {
+			emailService.sendDigitalSubscriptionBuyMail(sub.getUser().getEmail(), sub.getPlan().getType(),
+					sub.getUser().getName(), sub.getStartDate(), sub.getEndDate());
+		}
 
 		log.info("📧 Subscription confirmation mail sent | user={} | plan={}", sub.getUser().getEmail(),
 				sub.getPlan().getName());

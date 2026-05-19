@@ -12,6 +12,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.digital.magazine.common.service.EmailService;
+import com.digital.magazine.subscription.entity.UserAddress;
+import com.digital.magazine.subscription.enums.SubscriptionType;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -660,10 +662,10 @@ public class EmailServiceImpl implements EmailService {
 
 	@Async("taskExecutor")
 	@Override
-	public void sendSubscriptionBuyMail(String toEmail, String planName, String userName, LocalDate startDate,
-			LocalDate endDate) {
+	public void sendDigitalSubscriptionBuyMail(String toEmail, SubscriptionType planType, String userName,
+			LocalDate startDate, LocalDate endDate) {
 
-		log.info("Sending subscription activation mail to {}", toEmail);
+		log.info("Sending digital subscription activation mail to {}", toEmail);
 
 		try {
 
@@ -800,14 +802,205 @@ public class EmailServiceImpl implements EmailService {
 
 					      </html>
 					"""
-					.formatted(userName, planName, startDate, endDate);
+					.formatted(userName, planType, startDate, endDate);
 
 			sendMail(toEmail, subject, body);
 
-			log.info("Subscription activation mail sent successfully to {}", toEmail);
+			log.info("Digital subscription activation mail sent successfully to {}", toEmail);
 
 		} catch (Exception e) {
-			log.error("Failed to send subscription activation mail to {}", toEmail, e);
+			log.error("Failed to send digital subscription activation mail to {}", toEmail, e);
+		}
+
+	}
+
+	@Async("taskExecutor")
+	@Override
+	public void sendPrintSubscriptionBuyMail(String toEmail, SubscriptionType planType, String userName,
+			UserAddress address, LocalDate startDate, LocalDate endDate) {
+
+		log.info("Sending print subscription activation mail to {}", toEmail);
+
+		try {
+
+			String subject = "🎉 உங்கள் சந்தா வெற்றிகரமாக செயல்படுத்தப்பட்டது | Digital Magazine";
+
+			String body = """
+										<!DOCTYPE html>
+										<html lang="ta">
+
+										<head>
+										    <meta charset="UTF-8">
+
+										    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+										</head>
+
+										<body style="
+										    margin:0;
+										    padding:20px;
+										    background:#f4f4f4;
+										    font-family:'Noto Sans Tamil', sans-serif;
+										">
+
+										    <div style="
+										        max-width:600px;
+										        margin:auto;
+										        background:#ffffff;
+										        border-radius:16px;
+										        padding:35px;
+										        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+										    ">
+
+										        <h2 style="
+										            text-align:center;
+										            color:#2563eb;
+										            font-size:30px;
+										            margin-bottom:25px;
+										            font-weight:700;
+										        ">
+										            🎉 சந்தா வெற்றிகரமாக செயல்படுத்தப்பட்டது
+										        </h2>
+
+										        <p style="
+										            font-size:16px;
+										            color:#333;
+										            line-height:1.9;
+										        ">
+										            வணக்கம் <b>%s</b>,
+										        </p>
+
+										        <p style="
+										            font-size:16px;
+										            color:#444;
+										            line-height:1.9;
+										        ">
+										            உங்கள்
+										            <b style="color:#2563eb;">"%s"</b>
+										            சந்தா வெற்றிகரமாக செயல்படுத்தப்பட்டுள்ளது. 🎉
+										        </p>
+
+										        <div style="
+										            background:#eff6ff;
+										            border-left:5px solid #2563eb;
+										            padding:20px;
+										            border-radius:12px;
+										            margin:30px 0;
+										        ">
+
+										            <p style="
+										                margin:0 0 12px 0;
+										                color:#1e3a8a;
+										                font-size:16px;
+										                font-weight:600;
+										            ">
+										                📅 சந்தா விவரங்கள்
+										            </p>
+
+										            <p style="
+										                margin:8px 0;
+										                color:#444;
+										                font-size:15px;
+										            ">
+										                <b>தொடக்க தேதி:</b> %s
+										            </p>
+
+										            <p style="
+										                margin:8px 0;
+										                color:#444;
+										                font-size:15px;
+										            ">
+										                <b>முடிவு தேதி:</b> %s
+										            </p>
+
+										        </div>
+
+										        <div style="
+										            background:#f9fafb;
+										            border-left:5px solid #0f766e;
+										            padding:20px;
+										            border-radius:12px;
+										            margin:30px 0;
+										        ">
+
+										            <p style="
+										                margin:0 0 12px 0;
+										                color:#115e59;
+										                font-size:16px;
+										                font-weight:600;
+										            ">
+										                📦 அச்சு இதழ் விநியோகம்
+										            </p>
+
+										            <p style="
+										                margin:0;
+										                color:#444;
+										                font-size:15px;
+										                line-height:1.9;
+										            ">
+										                உங்கள் இதழ்கள் விரைவில் வழங்கப்பட்ட முகவரிக்கு அனுப்பப்படும்.
+										            </p>
+
+										            <p style="
+										                margin-top:15px;
+										                color:#111827;
+										                font-size:15px;
+										                line-height:1.8;
+										            ">
+										                <b>📍 விநியோக முகவரி:</b><br><br>
+
+					🏠 <b>%s</b><br>
+
+					%s<br>
+
+					%s, %s - %s<br>
+										            </p>
+
+										        </div>
+
+										        <p style="
+										            font-size:15px;
+										            color:#555;
+										            line-height:1.9;
+										        ">
+										            எங்களை தேர்வு செய்ததற்கு நன்றி 🙏
+										        </p>
+
+										        <hr style="
+										            margin:30px 0;
+										            border:none;
+										            border-top:1px solid #e5e7eb;
+										        ">
+
+										        <p style="
+										            text-align:center;
+										            color:#666;
+										            font-size:15px;
+										            line-height:1.8;
+										        ">
+										            அன்புடன்,<br>
+
+										            <b style="color:#111827;">
+										                Digital Magazine Team
+										            </b>
+										        </p>
+
+										    </div>
+
+										</body>
+
+										</html>
+										"""
+					.formatted(userName, planType, startDate, endDate,
+
+							address.getName(), address.getAddressLine(), address.getCity(), address.getState(),
+							address.getPincode());
+
+			sendMail(toEmail, subject, body);
+
+			log.info("Print subscription activation mail sent successfully to {}", toEmail);
+
+		} catch (Exception e) {
+			log.error("Failed to send print subscription activation mail to {}", toEmail, e);
 		}
 
 	}
