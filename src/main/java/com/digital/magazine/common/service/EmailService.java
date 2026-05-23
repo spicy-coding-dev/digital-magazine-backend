@@ -29,6 +29,11 @@ public interface EmailService {
 	public void sendSingleMagazineBuyMail(String toEmail, String magazineName, String userName, Long magazineNo,
 			Double magazinePrice, LocalDateTime purchaseDate);
 
+	public void sendSubscriptionExpiringSoonEmail(String toEmail, String userName, String planName, Long daysLeft,
+			LocalDate endDate);
+
+	public void sendSubscriptionExpiredEmail(String toEmail, String userName, String planName, LocalDate endDate);
+
 	void sendMail(String to, String subject, String content);
 
 	public void sendMailWithAttachment(String to, String subject, String content, byte[] attachmentBytes,

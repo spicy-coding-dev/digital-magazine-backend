@@ -10,4 +10,5 @@ public class SubscriptionStatsResponse {
 	private long freeUsers;
 	private long paidUsers;
 	private long expiringSoon;
+	private long expiredUsers;
 }

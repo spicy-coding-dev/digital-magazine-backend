@@ -3,8 +3,6 @@ package com.digital.magazine.admin.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.time.LocalDate;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -74,14 +72,11 @@ class AdminDashboardServiceImplTest {
 	@Test
 	void getStatsSummary_success() {
 
-		int days = 7;
-
 		when(userRepo.countByRole(Role.USER)).thenReturn(100L);
 		when(subscriptionRepo.countPaidUsers(SubscriptionStatus.ACTIVE, Role.USER)).thenReturn(40L);
-		when(subscriptionRepo.countExpiringSoon(eq(Role.USER), any(LocalDate.class), any(LocalDate.class)))
-				.thenReturn(8L);
+		when(subscriptionRepo.countPaidUsers(SubscriptionStatus.EXPIRING_SOON, Role.USER)).thenReturn(40L);
 
-		SubscriptionStatsResponse response = service.getStatsSummary(days);
+		SubscriptionStatsResponse response = service.getStatsSummary();
 
 		assertEquals(60L, response.getFreeUsers()); // 100 - 40
 		assertEquals(40L, response.getPaidUsers());
@@ -89,6 +84,6 @@ class AdminDashboardServiceImplTest {
 
 		verify(userRepo).countByRole(Role.USER);
 		verify(subscriptionRepo).countPaidUsers(SubscriptionStatus.ACTIVE, Role.USER);
-		verify(subscriptionRepo).countExpiringSoon(eq(Role.USER), any(LocalDate.class), any(LocalDate.class));
+		verify(subscriptionRepo).countPaidUsers(SubscriptionStatus.EXPIRING_SOON, Role.USER);
 	}
 }

@@ -1,6 +1,7 @@
 package com.digital.magazine.payment.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,6 +30,15 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 			""")
 	double getThisMonthRevenue();
 
+	@Query("""
+			SELECT COALESCE(SUM(p.amount),0)
+			FROM PaymentTransaction p
+			WHERE p.status='SUCCESS'
+			  AND MONTH(p.paymentDate)=MONTH(CURRENT_DATE - 1 MONTH)
+			  AND YEAR(p.paymentDate)=YEAR(CURRENT_DATE - 1 MONTH)
+			""")
+	double getLastMonthRevenue();
+
 // 🔥 Custom range
 	@Query("""
 			SELECT COALESCE(SUM(p.amount),0)
@@ -37,4 +47,15 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 			  AND p.paymentDate BETWEEN :start AND :end
 			""")
 	double getRevenueBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+	@Query("""
+			SELECT COALESCE(SUM(p.amount), 0)
+			FROM PaymentTransaction p
+			WHERE MONTH(p.paymentDate) = MONTH(CURRENT_DATE)
+			AND YEAR(p.paymentDate) = YEAR(CURRENT_DATE)
+			AND p.status = com.digital.magazine.payment.enums.PaymentStatus.SUCCESS
+			""")
+	Double getCurrentMonthTotalAmount();
+
+	List<PaymentTransaction> findAllByOrderByPaymentDateDesc();
 }

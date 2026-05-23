@@ -1172,6 +1172,308 @@ public class EmailServiceImpl implements EmailService {
 
 	}
 
+	@Async("taskExecutor")
+	@Override
+	public void sendSubscriptionExpiringSoonEmail(String toEmail, String userName, String planName, Long daysLeft,
+			LocalDate endDate) {
+
+		log.info("Sending subscription expiring soon email to {}", toEmail);
+
+		try {
+
+			String subject = "⏳ உங்கள் சந்தா விரைவில் முடிவடைகிறது | Digital Magazine";
+
+			String body = """
+					<!DOCTYPE html>
+					<html lang="ta">
+
+					<head>
+					    <meta charset="UTF-8">
+
+					    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+					</head>
+
+					<body style="
+					    margin:0;
+					    padding:20px;
+					    background:#f4f4f4;
+					    font-family:'Noto Sans Tamil', sans-serif;
+					">
+
+					    <div style="
+					        max-width:600px;
+					        margin:auto;
+					        background:#ffffff;
+					        border-radius:16px;
+					        padding:35px;
+					        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					    ">
+
+					        <h2 style="
+					            text-align:center;
+					            color:#ea580c;
+					            font-size:30px;
+					            margin-bottom:25px;
+					            font-weight:700;
+					        ">
+					            ⏳ சந்தா விரைவில் முடிவடைகிறது
+					        </h2>
+
+					        <p style="
+					            font-size:16px;
+					            color:#333;
+					            line-height:1.9;
+					        ">
+					            வணக்கம் <b>%s</b>,
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            உங்கள்
+					            <b style="color:#2563eb;">"%s"</b>
+					            சந்தா இன்னும்
+					            <b style="color:#dc2626;">%s நாட்களில்</b>
+					            முடிவடைய உள்ளது. ⏳
+					        </p>
+
+					        <div style="
+					            background:#fff7ed;
+					            border-left:5px solid #f97316;
+					            padding:20px;
+					            border-radius:12px;
+					            margin:30px 0;
+					        ">
+
+					            <p style="
+					                margin:0 0 12px 0;
+					                color:#c2410c;
+					                font-size:16px;
+					                font-weight:600;
+					            ">
+					                📅 சந்தா முடிவு தகவல்
+					            </p>
+
+					            <p style="
+					                margin:8px 0;
+					                color:#444;
+					                font-size:15px;
+					            ">
+					                <b>முடிவு தேதி:</b> %s
+					            </p>
+
+					        </div>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            Digital Magazine சேவைகளை தொடர்ந்து பயன்படுத்த,
+					            தயவுசெய்து உங்கள் சந்தாவை புதுப்பிக்கவும்.
+					        </p>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            உங்கள் தொடர்ந்த ஆதரவிற்கு நன்றி 🙏
+					        </p>
+
+					        <hr style="
+					            margin:30px 0;
+					            border:none;
+					            border-top:1px solid #e5e7eb;
+					        ">
+
+					        <p style="
+					            text-align:center;
+					            color:#666;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            அன்புடன்,<br>
+
+					            <b style="color:#111827;">
+					                Digital Magazine Team
+					            </b>
+					        </p>
+
+					    </div>
+
+					</body>
+
+					</html>
+					"""
+					.formatted(userName, planName, daysLeft, endDate);
+
+			sendMail(toEmail, subject, body);
+
+			log.info("Subscription expiring soon email sent successfully to {}", toEmail);
+
+		} catch (Exception e) {
+			log.error("Failed to send subscription expiring soon email to {}", toEmail, e);
+		}
+	}
+
+	@Async("taskExecutor")
+	@Override
+	public void sendSubscriptionExpiredEmail(String toEmail, String userName, String planName, LocalDate endDate) {
+
+		log.info("Sending subscription expired email to {}", toEmail);
+
+		try {
+
+			String subject = "❌ உங்கள் சந்தா காலாவதியானது | Digital Magazine";
+
+			String body = """
+					<!DOCTYPE html>
+					<html lang="ta">
+
+					<head>
+					    <meta charset="UTF-8">
+
+					    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+					</head>
+
+					<body style="
+					    margin:0;
+					    padding:20px;
+					    background:#f4f4f4;
+					    font-family:'Noto Sans Tamil', sans-serif;
+					">
+
+					    <div style="
+					        max-width:600px;
+					        margin:auto;
+					        background:#ffffff;
+					        border-radius:16px;
+					        padding:35px;
+					        box-shadow:0 4px 20px rgba(0,0,0,0.08);
+					    ">
+
+					        <h2 style="
+					            text-align:center;
+					            color:#dc2626;
+					            font-size:30px;
+					            margin-bottom:25px;
+					            font-weight:700;
+					        ">
+					            ❌ உங்கள் சந்தா காலாவதியானது
+					        </h2>
+
+					        <p style="
+					            font-size:16px;
+					            color:#333;
+					            line-height:1.9;
+					        ">
+					            வணக்கம் <b>%s</b>,
+					        </p>
+
+					        <p style="
+					            font-size:16px;
+					            color:#444;
+					            line-height:1.9;
+					        ">
+					            உங்கள்
+					            <b style="color:#2563eb;">"%s"</b>
+					            சந்தா
+					            <b style="color:#dc2626;">%s</b>
+					            அன்று காலாவதியானது. ❌
+					        </p>
+
+					        <div style="
+					            background:#fef2f2;
+					            border-left:5px solid #dc2626;
+					            padding:20px;
+					            border-radius:12px;
+					            margin:30px 0;
+					        ">
+
+					            <p style="
+					                margin:0 0 12px 0;
+					                color:#991b1b;
+					                font-size:16px;
+					                font-weight:600;
+					            ">
+					                📅 சந்தா காலாவதி தகவல்
+					            </p>
+
+					            <p style="
+					                margin:8px 0;
+					                color:#444;
+					                font-size:15px;
+					            ">
+					                <b>காலாவதி தேதி:</b> %s
+					            </p>
+
+					        </div>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            Digital Magazine சேவைகளை தொடர்ந்து பயன்படுத்த,
+					            தயவுசெய்து உங்கள் சந்தாவை புதுப்பிக்கவும்.
+					        </p>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            உங்கள் ஆதரவிற்கு நன்றி 🙏
+					        </p>
+
+					        <p style="
+					            font-size:15px;
+					            color:#555;
+					            line-height:1.9;
+					        ">
+					            மீண்டும் உங்களை எங்களுடன் இணைக்க
+					            ஆவலுடன் காத்திருக்கிறோம்.
+					        </p>
+
+					        <hr style="
+					            margin:30px 0;
+					            border:none;
+					            border-top:1px solid #e5e7eb;
+					        ">
+
+					        <p style="
+					            text-align:center;
+					            color:#666;
+					            font-size:15px;
+					            line-height:1.8;
+					        ">
+					            அன்புடன்,<br>
+
+					            <b style="color:#111827;">
+					                Digital Magazine Team
+					            </b>
+					        </p>
+
+					    </div>
+
+					</body>
+
+					</html>
+					"""
+					.formatted(userName, planName, endDate, endDate);
+
+			sendMail(toEmail, subject, body);
+
+			log.info("Subscription expired email sent successfully to {}", toEmail);
+
+		} catch (Exception e) {
+			log.error("Failed to send subscription expired email to {}", toEmail, e);
+		}
+	}
+
 	public void sendMail(String to, String subject, String content) {
 
 		try {

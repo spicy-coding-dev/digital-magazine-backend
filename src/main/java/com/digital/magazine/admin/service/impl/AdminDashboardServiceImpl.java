@@ -1,7 +1,5 @@
 package com.digital.magazine.admin.service.impl;
 
-import java.time.LocalDate;
-
 import org.springframework.stereotype.Service;
 
 import com.digital.magazine.admin.dto.DashboardStatsDto;
@@ -10,6 +8,7 @@ import com.digital.magazine.admin.service.AdminDashboardService;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.common.enums.Role;
+import com.digital.magazine.payment.repository.PaymentTransactionRepository;
 import com.digital.magazine.subscription.enums.SubscriptionStatus;
 import com.digital.magazine.subscription.repository.UserSubscriptionRepository;
 import com.digital.magazine.user.enums.AccountStatus;
@@ -28,6 +27,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
 	private final BookRepository bookRepo;
 	private final UserRepository userRepo;
 	private final UserSubscriptionRepository subscriptionRepo;
+	private final PaymentTransactionRepository paymentRepo;
 
 	@Override
 	public DashboardStatsDto getDashboardStats() {
@@ -38,17 +38,22 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
 		long publishedBooks = bookRepo.countByStatus(BookStatus.PUBLISHED);
 		long draftBooks = bookRepo.countByStatus(BookStatus.DRAFT);
 
-		long totalUsers = userRepo.count();
+		long totalUsers = userRepo.countByRole(Role.USER);
 		long pendingUsers = userRepo.countByStatus(AccountStatus.PENDING);
+
+		long activeSubscriptionUsers = subscriptionRepo.countByStatus(SubscriptionStatus.ACTIVE);
 
 		long booksThisMonth = bookRepo.countBooksUploadedThisMonth();
 
+		Double currentMonthRevenue = paymentRepo.getCurrentMonthTotalAmount();
+
 		return DashboardStatsDto.builder().totalBooks(totalBooks).publishedBooks(publishedBooks).draftBooks(draftBooks)
-				.totalUsers(totalUsers).pendingUsers(pendingUsers).booksUploadedThisMonth(booksThisMonth).build();
+				.totalUsers(totalUsers).pendingUsers(pendingUsers).booksUploadedThisMonth(booksThisMonth)
+				.activeSubscriptionUsers(activeSubscriptionUsers).currentMonthRevenue(currentMonthRevenue).build();
 	}
 
 	@Override
-	public SubscriptionStatsResponse getStatsSummary(int days) {
+	public SubscriptionStatsResponse getStatsSummary() {
 
 		log.info("📊 Fetching USER subscription stats only (excluding admin)");
 
@@ -59,13 +64,14 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
 
 		long freeUsers = totalUsers - paidUsers;
 
-		long expiringSoon = subscriptionRepo.countExpiringSoon(Role.USER, LocalDate.now(),
-				LocalDate.now().plusDays(days));
+		long expiringSoon = subscriptionRepo.countPaidUsers(SubscriptionStatus.EXPIRING_SOON, Role.USER);
 
-		log.info("📈 USER Stats → free={}, paid={}, expiringSoon={}", freeUsers, paidUsers, expiringSoon);
+		long expiredUsers = subscriptionRepo.countPaidUsers(SubscriptionStatus.EXPIRED, Role.USER);
+
+		log.info("📈 USER Stats → free={}, paid={}, expiringSoon={}", freeUsers, paidUsers, expiringSoon, expiredUsers);
 
 		return SubscriptionStatsResponse.builder().freeUsers(freeUsers).paidUsers(paidUsers).expiringSoon(expiringSoon)
-				.build();
+				.expiredUsers(expiredUsers).build();
 	}
 
 }

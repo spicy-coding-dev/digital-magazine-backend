@@ -73,7 +73,7 @@ class AdminDashboardControllerTest {
 		SubscriptionStatsResponse response = SubscriptionStatsResponse.builder().freeUsers(60).paidUsers(40)
 				.expiringSoon(5).build();
 
-		when(dashboardService.getStatsSummary(7)).thenReturn(response);
+		when(dashboardService.getStatsSummary()).thenReturn(response);
 
 		mockMvc.perform(get("/api/v1/admin/dashboard/subs/summary").param("days", "7")).andExpect(status().isOk())
 				.andExpect(jsonPath("$.freeUsers").value(60)).andExpect(jsonPath("$.paidUsers").value(40))

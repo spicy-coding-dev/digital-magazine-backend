@@ -7,6 +7,6 @@ public interface AdminDashboardService {
 
 	public DashboardStatsDto getDashboardStats();
 
-	SubscriptionStatsResponse getStatsSummary(int expiringDays);
+	SubscriptionStatsResponse getStatsSummary();
 
 }

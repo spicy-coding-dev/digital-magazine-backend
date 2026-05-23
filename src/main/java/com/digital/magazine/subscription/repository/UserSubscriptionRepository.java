@@ -31,16 +31,6 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 			""")
 	long countPaidUsers(@Param("status") SubscriptionStatus status, @Param("role") Role role);
 
-	// ✅ Expiring soon (ROLE_USER only)
-	@Query("""
-			    SELECT COUNT(us)
-			    FROM UserSubscription us
-			    WHERE us.status = 'ACTIVE'
-			      AND us.user.role = :role
-			      AND us.endDate BETWEEN :start AND :end
-			""")
-	long countExpiringSoon(@Param("role") Role role, @Param("start") LocalDate start, @Param("end") LocalDate end);
-
 	List<UserSubscription> findByStatus(SubscriptionStatus status);
 
 	List<UserSubscription> findByPlan_TypeAndStatus(SubscriptionType type, SubscriptionStatus status);
@@ -59,5 +49,9 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 	boolean existsByUserAndPlan_TypeAndStatusAndEndDateAfter(User user, SubscriptionType type,
 			SubscriptionStatus status, LocalDate date);
 
-	List<UserSubscription> findByStatusAndEndDateBefore(SubscriptionStatus status, LocalDate date);
+	List<UserSubscription> findByStatusAndEndDate(SubscriptionStatus status, LocalDate endDate);
+
+	List<UserSubscription> findByStatusInAndEndDateBefore(List<SubscriptionStatus> statuses, LocalDate today);
+
+	Long countByStatus(SubscriptionStatus status);
 }

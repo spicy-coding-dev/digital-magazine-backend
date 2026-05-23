@@ -18,6 +18,8 @@ public class DashboardStatsDto {
 	private long totalUsers;
 	private long pendingUsers;
 
+	private long activeSubscriptionUsers;
+	private Double currentMonthRevenue;
+
 	private long booksUploadedThisMonth;
 }
-

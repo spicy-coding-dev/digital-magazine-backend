@@ -11,4 +11,5 @@ public class PaymentSummaryDto {
 
 	private double todayRevenue;
 	private double thisMonthRevenue;
+	private double thisLastRevenue;
 }
