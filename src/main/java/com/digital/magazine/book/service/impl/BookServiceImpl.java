@@ -84,7 +84,7 @@ public class BookServiceImpl implements BookService {
 		Books book = Books.builder().title(dto.getTitle()).subtitle(dto.getSubtitle()).author(dto.getAuthor())
 				.magazineNo(dto.getMagazineNo()).category(category).tags(tags).paid(dto.getPaid())
 				.price(dto.getPaid() ? dto.getPrice() : null).status(dto.getStatus()).coverImagePath(coverImageUrl)
-				.createdBy(admin).createdAt(LocalDateTime.now()).build();
+				.issueType(dto.getIssueType()).createdBy(admin).createdAt(LocalDateTime.now()).build();
 
 		bookRepo.save(book);
 

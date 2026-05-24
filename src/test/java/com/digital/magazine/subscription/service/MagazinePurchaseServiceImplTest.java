@@ -17,6 +17,7 @@ import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.common.exception.*;
+import com.digital.magazine.common.service.EmailService;
 import com.digital.magazine.subscription.entity.MagazinePurchase;
 import com.digital.magazine.subscription.entity.SubscriptionPlan;
 import com.digital.magazine.subscription.entity.UserSubscription;
@@ -45,6 +46,9 @@ class MagazinePurchaseServiceImplTest {
 	@Mock
 	private Authentication authentication;
 
+	@Mock
+	private EmailService emailService;
+
 	@InjectMocks
 	private MagazinePurchaseServiceImpl service;
 
@@ -69,6 +73,9 @@ class MagazinePurchaseServiceImplTest {
 		when(bookRepo.findById(10L)).thenReturn(Optional.of(book));
 		when(userSubscriptionRepo.findActiveByUser(user)).thenReturn(Optional.empty());
 		when(purchaseRepo.existsByUserAndBook(user, book)).thenReturn(false);
+
+		doNothing().when(emailService).sendSingleMagazineBuyMail(anyString(), anyString(), anyString(), anyLong(),
+				anyDouble(), any());
 
 		String result = service.purchase(authentication, 10L);
 

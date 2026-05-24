@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 
 import com.digital.magazine.common.exception.*;
+import com.digital.magazine.common.service.EmailService;
 import com.digital.magazine.subscription.dto.BuySubscriptionRequest;
 import com.digital.magazine.subscription.entity.*;
 import com.digital.magazine.subscription.enums.*;
@@ -39,6 +40,9 @@ class SubscriptionServiceImplTest {
 	private UserRepository userRepo;
 	@Mock
 	private Authentication auth;
+
+	@Mock
+	private EmailService emailService;
 
 	@InjectMocks
 	private SubscriptionServiceImpl service;

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -38,40 +37,56 @@ class EmailServiceImplTest {
 	@Test
 	void sendVerificationEmail_success() {
 
-		doNothing().when(mailSender).send(any(SimpleMailMessage.class));
+		MimeMessage mimeMessage = mock(MimeMessage.class);
+
+		when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+		doNothing().when(mailSender).send(any(MimeMessage.class));
 
 		assertDoesNotThrow(() -> emailService.sendVerificationEmail("user@test.com", "dummy-token"));
 
-		verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+		verify(mailSender, times(1)).send(any(MimeMessage.class));
 	}
 
 	// ✅ sendPasswordResetMail
 	@Test
 	void sendPasswordResetMail_success() {
 
-		doNothing().when(mailSender).send(any(SimpleMailMessage.class));
+		MimeMessage mimeMessage = mock(MimeMessage.class);
+
+		when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+		doNothing().when(mailSender).send(any(MimeMessage.class));
 
 		assertDoesNotThrow(() -> emailService.sendPasswordResetMail("user@test.com", "reset-token"));
 
-		verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+		verify(mailSender, times(1)).send(any(MimeMessage.class));
 	}
 
 	// ✅ sendEmail (core method)
 	@Test
 	void sendEmail_success() {
 
-		doNothing().when(mailSender).send(any(SimpleMailMessage.class));
+		MimeMessage mimeMessage = mock(MimeMessage.class);
+
+		when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+		doNothing().when(mailSender).send(any(MimeMessage.class));
 
 		emailService.sendMail("user@test.com", "Test Subject", "Test Content");
 
-		verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+		verify(mailSender, times(1)).send(any(MimeMessage.class));
 	}
 
 	// ❌ sendEmail failure
 	@Test
 	void sendEmail_failure_shouldThrowException() {
 
-		doThrow(new RuntimeException("SMTP error")).when(mailSender).send(any(SimpleMailMessage.class));
+		MimeMessage mimeMessage = mock(MimeMessage.class);
+
+		when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+		doThrow(new RuntimeException("SMTP error")).when(mailSender).send(any(MimeMessage.class));
 
 		RuntimeException ex = assertThrows(RuntimeException.class,
 				() -> emailService.sendMail("user@test.com", "Test Subject", "Test Content"));

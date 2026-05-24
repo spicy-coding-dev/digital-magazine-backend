@@ -50,6 +50,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 
 		final String authHeader = request.getHeader("Authorization");
+
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.setContentType("application/json;charset=UTF-8");
+
+			response.getWriter().write(
+					"{\"message\":\"Token இல்லை அல்லது தவறான Token ஆதலால் உள்நுழைவு பக்கம்(Login page) வழியாக மீண்டும் உள்நுழையவும்\"}");
+
+			return;
+		}
+
 		String username = null;
 		String jwt = null;
 
@@ -66,7 +78,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 								userDetails, null, userDetails.getAuthorities());
 						authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 						SecurityContextHolder.getContext().setAuthentication(authToken);
+					} else {
+
+						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+						response.setContentType("application/json;charset=UTF-8");
+
+						response.getWriter().write(
+								"{\"message\":\"Token இல்லை அல்லது தவறான Token ஆதலால் உள்நுழைவு பக்கம்(Login page) வழியாக மீண்டும் உள்நுழையவும்\"}");
+
+						return;
 					}
+
 				}
 			}
 

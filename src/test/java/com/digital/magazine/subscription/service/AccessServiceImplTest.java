@@ -3,6 +3,7 @@ package com.digital.magazine.subscription.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -61,28 +62,29 @@ class AccessServiceImplTest {
 		boolean result = accessService.canAccessBook(null, paidBook);
 
 		assertFalse(result);
+		verifyNoInteractions(userSubscriptionRepo, magazinePurchaseRepo);
 	}
 
 	// 🔥 Paid book + DIGITAL subscription
 	@Test
 	void canAccessBook_digitalSubscription_shouldReturnTrue() {
 
-		when(userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(1L, SubscriptionType.DIGITAL,
-				SubscriptionStatus.ACTIVE)).thenReturn(true);
+		when(userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatusIn(1L, SubscriptionType.DIGITAL,
+				List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRING_SOON))).thenReturn(true);
 
 		boolean result = accessService.canAccessBook(user, paidBook);
 
 		assertTrue(result);
-		verify(userSubscriptionRepo).existsByUser_IdAndPlan_TypeAndStatus(1L, SubscriptionType.DIGITAL,
-				SubscriptionStatus.ACTIVE);
+		verify(userSubscriptionRepo).existsByUser_IdAndPlan_TypeAndStatusIn(1L, SubscriptionType.DIGITAL,
+				List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRING_SOON));
 	}
 
 	// 🛒 Paid book + individual purchase
 	@Test
 	void canAccessBook_individualPurchase_shouldReturnTrue() {
 
-		when(userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(1L, SubscriptionType.DIGITAL,
-				SubscriptionStatus.ACTIVE)).thenReturn(false);
+		when(userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatusIn(1L, SubscriptionType.DIGITAL,
+				List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRING_SOON))).thenReturn(false);
 
 		when(magazinePurchaseRepo.findBookIdsByUserId(1L)).thenReturn(Set.of(10L));
 
@@ -96,8 +98,8 @@ class AccessServiceImplTest {
 	@Test
 	void canAccessBook_noAccess_shouldReturnFalse() {
 
-		when(userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(1L, SubscriptionType.DIGITAL,
-				SubscriptionStatus.ACTIVE)).thenReturn(false);
+		when(userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatusIn(1L, SubscriptionType.DIGITAL,
+				List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRING_SOON))).thenReturn(false);
 
 		when(magazinePurchaseRepo.findBookIdsByUserId(1L)).thenReturn(Set.of());
 

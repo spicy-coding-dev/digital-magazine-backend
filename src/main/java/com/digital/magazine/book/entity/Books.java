@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.digital.magazine.book.enums.MagazineIssueType;
 import com.digital.magazine.common.enums.BookCategory;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.user.entity.User;
@@ -65,6 +66,9 @@ public class Books {
 
 	@Enumerated(EnumType.STRING)
 	private BookStatus status;
+
+	@Enumerated(EnumType.STRING)
+	private MagazineIssueType issueType;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "created_by", nullable = false)

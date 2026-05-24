@@ -24,6 +24,7 @@ import com.digital.magazine.common.service.EmailService;
 import com.digital.magazine.common.captcha.CaptchaService;
 import com.digital.magazine.security.jwt.JwtUtil;
 import com.digital.magazine.security.service.CustomUserDetailsService;
+import com.digital.magazine.subscription.service.impl.SubscriptionQueryServiceImpl;
 import com.digital.magazine.user.entity.User;
 import com.digital.magazine.user.enums.AccountStatus;
 import com.digital.magazine.user.repository.UserRepository;
@@ -74,6 +75,9 @@ class AuthServiceImplTest {
 
 	@Mock
 	private LoginAttemptService loginAttemptService;
+
+	@Mock
+	private SubscriptionQueryServiceImpl subscriptionService;
 
 	@Test
 	void register_newUser_success() {
@@ -151,6 +155,8 @@ class AuthServiceImplTest {
 		User user = User.builder().email("test@gmail.com").role(Role.USER).build();
 
 		when(userRepo.findByEmail(any())).thenReturn(Optional.of(user));
+
+		when(subscriptionService.getSubscriptionPopup(any())).thenReturn(null);
 
 		LoginApiResponse response = authService.refreshToken(request);
 

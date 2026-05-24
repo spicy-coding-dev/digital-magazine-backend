@@ -76,8 +76,8 @@ class AdminDashboardControllerTest {
 		when(dashboardService.getStatsSummary()).thenReturn(response);
 
 		mockMvc.perform(get("/api/v1/admin/dashboard/subs/summary").param("days", "7")).andExpect(status().isOk())
-				.andExpect(jsonPath("$.freeUsers").value(60)).andExpect(jsonPath("$.paidUsers").value(40))
-				.andExpect(jsonPath("$.expiringSoon").value(5));
+				.andExpect(jsonPath("$.data.freeUsers").value(60)).andExpect(jsonPath("$.data.paidUsers").value(40))
+				.andExpect(jsonPath("$.data.expiringSoon").value(5));
 	}
 
 	// ----------------------------------------
@@ -92,6 +92,7 @@ class AdminDashboardControllerTest {
 		when(paymentStatsService.getSummary()).thenReturn(dto);
 
 		mockMvc.perform(get("/api/v1/admin/dashboard/payment/summary")).andExpect(status().isOk())
-				.andExpect(jsonPath("$.todayRevenue").value(100)).andExpect(jsonPath("$.thisMonthRevenue").value(500));
+				.andExpect(jsonPath("$.data.todayRevenue").value(100))
+				.andExpect(jsonPath("$.data.thisMonthRevenue").value(500));
 	}
 }

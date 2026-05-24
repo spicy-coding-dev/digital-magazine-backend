@@ -144,7 +144,10 @@ class JwtAuthenticationFilterTest {
 
 		filter.doFilter(request, response, filterChain);
 
-		assertEquals(200, response.getStatus());
+		assertEquals(401, response.getStatus());
+
+		assertTrue(response.getContentAsString().contains("Token இல்லை"));
+
 		assertNull(SecurityContextHolder.getContext().getAuthentication());
 	}
 

@@ -44,7 +44,8 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 			""")
 	List<String> findEmailBySubscriptionType(SubscriptionType type);
 
-	boolean existsByUser_IdAndPlan_TypeAndStatus(Long userId, SubscriptionType type, SubscriptionStatus status);
+	boolean existsByUser_IdAndPlan_TypeAndStatusIn(Long userId, SubscriptionType type,
+			List<SubscriptionStatus> statuses);
 
 	boolean existsByUserAndPlan_TypeAndStatusAndEndDateAfter(User user, SubscriptionType type,
 			SubscriptionStatus status, LocalDate date);
@@ -54,4 +55,6 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 	List<UserSubscription> findByStatusInAndEndDateBefore(List<SubscriptionStatus> statuses, LocalDate today);
 
 	Long countByStatus(SubscriptionStatus status);
+
+	List<UserSubscription> findByUserAndStatusIn(User user, List<SubscriptionStatus> statuses);
 }

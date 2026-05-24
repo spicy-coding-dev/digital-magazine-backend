@@ -21,7 +21,6 @@ import com.digital.magazine.book.entity.BookContent;
 import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.entity.Tag;
 import com.digital.magazine.book.enums.HomeSectionConfig;
-import com.digital.magazine.book.enums.MagazineIssueType;
 import com.digital.magazine.book.repository.BookContentRepository;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.book.service.UserBookService;
@@ -122,12 +121,12 @@ public class UserBookServiceImpl implements UserBookService {
 			throw new NoBooksFoundException("இந்த பிரிவில் தற்போது எந்த புத்தகங்களும் இல்லை");
 		}
 
-		int currentYear = LocalDate.now().getYear(); // 🔥 2026
+//		int currentYear = LocalDate.now().getYear(); // 🔥 2026
+//
+//		return books.stream().map(book -> mapToSummaryWithYearRule(book, user, category, currentYear)).toList();
 
-		return books.stream().map(book -> mapToSummaryWithYearRule(book, user, category, currentYear)).toList();
-
-//		// 🔄 Entity → DTO (with ACCESS CHECK)
-//		return books.stream().map(book -> mapToSummary(book, user)).toList();
+		// 🔄 Entity → DTO (with ACCESS CHECK)
+		return books.stream().map(book -> mapToSummary(book, user)).toList();
 	}
 
 //	@Override
@@ -176,6 +175,7 @@ public class UserBookServiceImpl implements UserBookService {
 		return BookSummaryDto.builder().id(book.getId()).title(book.getTitle()).subTitle(book.getSubtitle())
 				.author(book.getAuthor()).category(book.getCategory().getTamilLabel())
 				.coverImage(book.getCoverImagePath()).magazineNo(book.getMagazineNo()).paid(book.isPaid())
+				.issueType(book.getIssueType())
 
 				// 🔥 MAIN LOGIC
 				.price(book.getPrice()).status(book.getStatus()).accessible(accessible)
@@ -184,38 +184,38 @@ public class UserBookServiceImpl implements UserBookService {
 				.build();
 	}
 
-	private BookSummaryDto mapToSummaryWithYearRule(Books book, User user, BookCategory category, int currentYear) {
-
-		LocalDateTime publishedDate = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
-
-		int publishedYear = 0;
-
-		if (publishedDate != null) {
-			publishedYear = publishedDate.getYear();
-		}
-
-		MagazineIssueType issueType = null;
-
-		// 🔥 ONLY FOR MAGAZINE CATEGORY
-		if (category == BookCategory.MAGAZINE) {
-			if (publishedYear == currentYear) {
-				issueType = MagazineIssueType.LATEST;
-			} else {
-				issueType = MagazineIssueType.PREVIOUS;
-			}
-		}
-
-		boolean accessible = accessService.canAccessBook(user, book);
-
-		return BookSummaryDto.builder().id(book.getId()).title(book.getTitle()).subTitle(book.getSubtitle())
-				.author(book.getAuthor()).category(book.getCategory().getTamilLabel())
-				.coverImage(book.getCoverImagePath()).magazineNo(book.getMagazineNo()).paid(book.isPaid())
-
-				// 🔥 MAIN LOGIC
-				.price(book.getPrice()).status(book.getStatus()).accessible(accessible)
-				.uploadAt(book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt()).issueType(issueType)
-				.build();
-	}
+//	private BookSummaryDto mapToSummaryWithYearRule(Books book, User user, BookCategory category, int currentYear) {
+//
+//		LocalDateTime publishedDate = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
+//
+//		int publishedYear = 0;
+//
+//		if (publishedDate != null) {
+//			publishedYear = publishedDate.getYear();
+//		}
+//
+//		MagazineIssueType issueType = null;
+//
+//		// 🔥 ONLY FOR MAGAZINE CATEGORY
+//		if (category == BookCategory.MAGAZINE) {
+//			if (publishedYear == currentYear) {
+//				issueType = MagazineIssueType.LATEST;
+//			} else {
+//				issueType = MagazineIssueType.PREVIOUS;
+//			}
+//		}
+//
+//		boolean accessible = accessService.canAccessBook(user, book);
+//
+//		return BookSummaryDto.builder().id(book.getId()).title(book.getTitle()).subTitle(book.getSubtitle())
+//				.author(book.getAuthor()).category(book.getCategory().getTamilLabel())
+//				.coverImage(book.getCoverImagePath()).magazineNo(book.getMagazineNo()).paid(book.isPaid())
+//
+//				// 🔥 MAIN LOGIC
+//				.price(book.getPrice()).status(book.getStatus()).accessible(accessible)
+//				.uploadAt(book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt()).issueType(issueType)
+//				.build();
+//	}
 
 	@Override
 	public BookDetailsWithRelatedResponseDto getBookDetails(Long bookId, Authentication auth) {

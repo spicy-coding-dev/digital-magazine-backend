@@ -1,5 +1,6 @@
 package com.digital.magazine.subscription.service.impl;
 
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -60,8 +61,8 @@ public class AccessServiceImpl implements AccessService {
 
 	private boolean hasDigitalSubscription(Long userId) {
 
-		boolean exists = userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatus(userId, SubscriptionType.DIGITAL,
-				SubscriptionStatus.ACTIVE);
+		boolean exists = userSubscriptionRepo.existsByUser_IdAndPlan_TypeAndStatusIn(userId, SubscriptionType.DIGITAL,
+				List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRING_SOON));
 
 		log.info("🔥 DIGITAL SUB CHECK | userId={} | result={}", userId, exists);
 

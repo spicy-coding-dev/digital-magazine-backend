@@ -2,6 +2,7 @@ package com.digital.magazine.book.dto;
 
 import java.util.List;
 
+import com.digital.magazine.book.enums.MagazineIssueType;
 import com.digital.magazine.common.enums.BookStatus;
 
 import jakarta.validation.constraints.NotBlank;
@@ -41,6 +42,8 @@ public class BookUploadRequestDto {
 
 	@NotEmpty(message = "குறைந்தது ஒரு tag அவசியம்")
 	private List<String> tags;
+
+	private MagazineIssueType issueType;
 
 	// example: "tamil,history,politics"
 

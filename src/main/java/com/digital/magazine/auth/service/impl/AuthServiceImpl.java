@@ -35,6 +35,8 @@ import com.digital.magazine.common.security.LoginAttemptService;
 import com.digital.magazine.common.service.EmailService;
 import com.digital.magazine.security.jwt.JwtUtil;
 import com.digital.magazine.security.service.CustomUserDetailsService;
+import com.digital.magazine.subscription.dto.SubscriptionPopupDto;
+import com.digital.magazine.subscription.service.impl.SubscriptionQueryServiceImpl;
 import com.digital.magazine.user.entity.User;
 import com.digital.magazine.user.enums.AccountStatus;
 import com.digital.magazine.user.repository.UserRepository;
@@ -62,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
 	private final AuthenticationManager authManager;
 	private final CaptchaService captchaService;
 	private final LoginAttemptService loginAttemptService;
+	private final SubscriptionQueryServiceImpl subscriptionService;
 
 	@Override
 	public void register(RegisterRequestDto dto) {
@@ -204,7 +207,9 @@ public class AuthServiceImpl implements AuthService {
 			resp.addHeader("Set-Cookie", cookie.toString());
 			log.info("🍪 Refresh token cookie issued for key={}", key);
 
-			return new LoginApiResponse(accessToken, userEntity.getRole());
+			SubscriptionPopupDto popup = subscriptionService.getSubscriptionPopup(userEntity);
+
+			return new LoginApiResponse(accessToken, userEntity.getRole(), popup);
 
 		} catch (BadCredentialsException ex) {
 			loginAttemptService.loginFailed(key);
@@ -267,8 +272,10 @@ public class AuthServiceImpl implements AuthService {
 		String newAccessToken = jwtUtil.generateAccessToken(username);
 		log.info("✅ New access token generated successfully for user={}", username);
 
+		SubscriptionPopupDto popup = subscriptionService.getSubscriptionPopup(userEntity);
+
 		// 🔍 6. Build response
-		return new LoginApiResponse(newAccessToken, userEntity.getRole());
+		return new LoginApiResponse(newAccessToken, userEntity.getRole(), popup);
 	}
 
 	@Override

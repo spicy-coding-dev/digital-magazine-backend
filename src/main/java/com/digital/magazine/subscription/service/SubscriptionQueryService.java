@@ -5,8 +5,10 @@ import java.util.List;
 
 import com.digital.magazine.subscription.dto.MagazinePurchaseAdminDto;
 import com.digital.magazine.subscription.dto.SubscribedUserDto;
+import com.digital.magazine.subscription.dto.SubscriptionPopupDto;
 import com.digital.magazine.subscription.enums.SubscriptionStatus;
 import com.digital.magazine.subscription.enums.SubscriptionType;
+import com.digital.magazine.user.entity.User;
 
 public interface SubscriptionQueryService {
 
@@ -17,4 +19,6 @@ public interface SubscriptionQueryService {
 	List<MagazinePurchaseAdminDto> getPurchasesByBook(Long bookId);
 
 	List<MagazinePurchaseAdminDto> getPurchasesBetweenDates(LocalDate fromDate, LocalDate toDate, Long bookId);
+
+	public SubscriptionPopupDto getSubscriptionPopup(User user);
 }

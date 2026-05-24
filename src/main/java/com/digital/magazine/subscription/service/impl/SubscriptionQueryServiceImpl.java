@@ -3,6 +3,7 @@ package com.digital.magazine.subscription.service.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.subscription.dto.MagazinePurchaseAdminDto;
 import com.digital.magazine.subscription.dto.SubscribedUserDto;
+import com.digital.magazine.subscription.dto.SubscriptionPopupDto;
 import com.digital.magazine.subscription.dto.UserAddressResponseDto;
 import com.digital.magazine.subscription.entity.MagazinePurchase;
 import com.digital.magazine.subscription.entity.UserAddress;
@@ -21,6 +23,7 @@ import com.digital.magazine.subscription.enums.SubscriptionType;
 import com.digital.magazine.subscription.repository.MagazinePurchaseRepository;
 import com.digital.magazine.subscription.repository.UserSubscriptionRepository;
 import com.digital.magazine.subscription.service.SubscriptionQueryService;
+import com.digital.magazine.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,6 +103,67 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 		}
 
 		return purchases.stream().map(this::toDto).toList();
+	}
+
+	public SubscriptionPopupDto getSubscriptionPopup(User user) {
+
+		List<UserSubscription> subscriptions = subscriptionRepo.findByUserAndStatusIn(user,
+				List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRING_SOON, SubscriptionStatus.EXPIRED));
+
+		if (subscriptions.isEmpty()) {
+
+			return SubscriptionPopupDto.builder().show(false).build();
+		}
+
+		UserSubscription sub = subscriptions.stream().max(Comparator.comparing(UserSubscription::getEndDate))
+				.orElseThrow();
+
+		/* 🔥 EXPIRING SOON */
+		if (sub.getStatus() == SubscriptionStatus.EXPIRING_SOON) {
+
+			return SubscriptionPopupDto.builder()
+
+					.show(true)
+
+					.status("EXPIRING_SOON")
+
+					.message("உங்கள் " + sub.getPlan().getName() + " விரைவில் " + sub.getEndDate()
+							+ " அன்று முடிவடைகிறது. தயவுசெய்து புதுப்பிக்கவும்.")
+
+					.endDate(sub.getEndDate())
+
+					.build();
+
+		} else if (sub.getStatus() == SubscriptionStatus.EXPIRED) {
+
+			return SubscriptionPopupDto.builder()
+
+					.show(true)
+
+					.status("EXPIRED")
+
+					.message("உங்கள் " + sub.getPlan().getName() + " " + sub.getEndDate()
+							+ " அன்று காலாவதியானது. தொடர்ந்து பயன்படுத்த சந்தாவை புதுப்பிக்கவும்.")
+
+					.endDate(sub.getEndDate())
+
+					.build();
+
+		}
+
+		/* 🔥 ACTIVE */
+		return SubscriptionPopupDto.builder()
+
+				.show(true)
+
+				.status("ACTIVE")
+
+				.message("உங்கள் " + sub.getPlan().getName() + " " + sub.getStartDate() + " முதல் " + sub.getEndDate()
+						+ " வரை செயல்பாட்டில் இருக்கும்")
+
+				.endDate(sub.getEndDate())
+
+				.build();
 	}
 
 	private SubscribedUserDto mapToSubscribedUserDto(UserSubscription s) {

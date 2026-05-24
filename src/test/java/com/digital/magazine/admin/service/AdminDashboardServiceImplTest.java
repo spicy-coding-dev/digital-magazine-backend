@@ -15,6 +15,7 @@ import com.digital.magazine.admin.service.impl.AdminDashboardServiceImpl;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.common.enums.Role;
+import com.digital.magazine.payment.repository.PaymentTransactionRepository;
 import com.digital.magazine.subscription.enums.SubscriptionStatus;
 import com.digital.magazine.subscription.repository.UserSubscriptionRepository;
 import com.digital.magazine.user.enums.AccountStatus;
@@ -32,6 +33,9 @@ class AdminDashboardServiceImplTest {
 	@Mock
 	private UserSubscriptionRepository subscriptionRepo;
 
+	@Mock
+	private PaymentTransactionRepository paymentRepo;
+
 	@InjectMocks
 	private AdminDashboardServiceImpl service;
 
@@ -45,8 +49,9 @@ class AdminDashboardServiceImplTest {
 		when(bookRepo.countByStatus(BookStatus.PUBLISHED)).thenReturn(70L);
 		when(bookRepo.countByStatus(BookStatus.DRAFT)).thenReturn(30L);
 		when(bookRepo.countBooksUploadedThisMonth()).thenReturn(12L);
+		when(paymentRepo.getCurrentMonthTotalAmount()).thenReturn(5000.0);
 
-		when(userRepo.count()).thenReturn(200L);
+		when(userRepo.countByRole(Role.USER)).thenReturn(200L);
 		when(userRepo.countByStatus(AccountStatus.PENDING)).thenReturn(15L);
 
 		DashboardStatsDto stats = service.getDashboardStats();
@@ -57,13 +62,15 @@ class AdminDashboardServiceImplTest {
 		assertEquals(200L, stats.getTotalUsers());
 		assertEquals(15L, stats.getPendingUsers());
 		assertEquals(12L, stats.getBooksUploadedThisMonth());
+		assertEquals(5000.0, stats.getCurrentMonthRevenue());
 
 		verify(bookRepo).count();
 		verify(bookRepo).countByStatus(BookStatus.PUBLISHED);
 		verify(bookRepo).countByStatus(BookStatus.DRAFT);
 		verify(bookRepo).countBooksUploadedThisMonth();
-		verify(userRepo).count();
+		verify(userRepo).countByRole(Role.USER);
 		verify(userRepo).countByStatus(AccountStatus.PENDING);
+		verify(paymentRepo).getCurrentMonthTotalAmount();
 	}
 
 	// --------------------------------------------------
@@ -80,7 +87,7 @@ class AdminDashboardServiceImplTest {
 
 		assertEquals(60L, response.getFreeUsers()); // 100 - 40
 		assertEquals(40L, response.getPaidUsers());
-		assertEquals(8L, response.getExpiringSoon());
+		assertEquals(40L, response.getExpiringSoon());
 
 		verify(userRepo).countByRole(Role.USER);
 		verify(subscriptionRepo).countPaidUsers(SubscriptionStatus.ACTIVE, Role.USER);
