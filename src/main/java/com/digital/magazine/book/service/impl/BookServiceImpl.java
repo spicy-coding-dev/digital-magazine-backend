@@ -81,7 +81,7 @@ public class BookServiceImpl implements BookService {
 		BookCategory category = BookCategory.fromTamil(dto.getCategory());
 		Set<Tag> tags = resolveTags(dto.getTags());
 
-		log.info("Issue Type issueType={}", dto.getIssueType());
+		log.info("Issue Type issueType={} bookStatus={}", dto.getIssueType(), dto.getStatus());
 
 		Books book = Books.builder().title(dto.getTitle()).subtitle(dto.getSubtitle()).author(dto.getAuthor())
 				.magazineNo(dto.getMagazineNo()).category(category).tags(tags).paid(dto.getPaid())
