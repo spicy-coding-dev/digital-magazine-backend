@@ -209,7 +209,7 @@ public class AuthServiceImpl implements AuthService {
 
 			SubscriptionPopupDto popup = subscriptionService.getSubscriptionPopup(userEntity);
 
-			return new LoginApiResponse(accessToken, userEntity.getRole(), popup);
+			return new LoginApiResponse(accessToken, userEntity.getRole(), userEntity.getName(), popup);
 
 		} catch (BadCredentialsException ex) {
 			loginAttemptService.loginFailed(key);
@@ -275,7 +275,7 @@ public class AuthServiceImpl implements AuthService {
 		SubscriptionPopupDto popup = subscriptionService.getSubscriptionPopup(userEntity);
 
 		// 🔍 6. Build response
-		return new LoginApiResponse(newAccessToken, userEntity.getRole(), popup);
+		return new LoginApiResponse(newAccessToken, userEntity.getRole(), userEntity.getName(), popup);
 	}
 
 	@Override

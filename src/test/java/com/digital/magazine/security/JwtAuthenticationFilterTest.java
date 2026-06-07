@@ -137,7 +137,10 @@ class JwtAuthenticationFilterTest {
 	@Test
 	void authorizationHeaderMissing_shouldReturnUnauthorized() throws Exception {
 
+		SecurityContextHolder.clearContext();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
+
 		request.setRequestURI("/api/v1/books");
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
