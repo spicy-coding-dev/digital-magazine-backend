@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.digital.magazine.book.dto.BookDetailsWithRelatedResponseDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
+import com.digital.magazine.book.dto.MagazineDetailsResponseDto;
 import com.digital.magazine.book.service.UserBookService;
 import com.digital.magazine.common.response.ApiResponse;
 
@@ -50,6 +51,17 @@ public class UserBookController {
 		BookDetailsWithRelatedResponseDto response = bookService.getBookDetails(bookId, auth);
 
 		return ResponseEntity.ok(new ApiResponse<>("புத்தக விவரங்கள் பெறப்பட்டன", response));
+	}
+
+	@GetMapping("/magazines/{magazineNo}")
+	public ResponseEntity<ApiResponse<MagazineDetailsResponseDto>> getMagazineDetails(@PathVariable Long magazineNo,
+			Authentication auth) {
+
+		log.info("📰 [CONTROLLER] Get Magazine Details | magazineNo={}", magazineNo);
+
+		MagazineDetailsResponseDto response = bookService.getMagazineDetails(magazineNo, auth);
+
+		return ResponseEntity.ok(new ApiResponse<>("இதழ் விவரங்கள் பெறப்பட்டன", response));
 	}
 
 }

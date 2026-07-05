@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 
 import com.digital.magazine.book.dto.BookDetailsWithRelatedResponseDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
+import com.digital.magazine.book.dto.MagazineDetailsResponseDto;
 
 public interface UserBookService {
 
@@ -16,5 +17,7 @@ public interface UserBookService {
 	public List<BookSummaryDto> getBooksByCategory(String categoryLabel, String status, Principal loginUser);
 
 	public BookDetailsWithRelatedResponseDto getBookDetails(Long bookId, Authentication auth);
+
+	MagazineDetailsResponseDto getMagazineDetails(Long magazineNo, Authentication auth);
 
 }

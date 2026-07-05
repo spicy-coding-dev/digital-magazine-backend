@@ -23,6 +23,7 @@ import com.digital.magazine.book.dto.BookUploadRequestDto;
 import com.digital.magazine.book.entity.BookContent;
 import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.entity.Tag;
+import com.digital.magazine.book.enums.MagazineIssueType;
 import com.digital.magazine.book.repository.BookContentRepository;
 import com.digital.magazine.book.repository.BookRepository;
 import com.digital.magazine.book.repository.TagRepository;
@@ -67,6 +68,7 @@ public class BookServiceImpl implements BookService {
 	public void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, UserDetails userDetails) {
 
 		String adminEmail = userDetails.getUsername();
+
 		log.info("📘 [BOOK UPLOAD START] admin={}", adminEmail);
 
 		User admin = userRepository.findByEmail(adminEmail).orElseThrow(() -> {
@@ -74,21 +76,48 @@ public class BookServiceImpl implements BookService {
 			return new UserNotFoundException("Admin not found");
 		});
 
-		// 1️⃣ Cover Image
+		// Cover Image Upload
 		log.info("🖼️ Uploading cover image...");
 		String coverImageUrl = supabaseStorageService.uploadPublicFile(coverImage, "books/covers");
 
 		BookCategory category = BookCategory.fromTamil(dto.getCategory());
+
 		Set<Tag> tags = resolveTags(dto.getTags());
 
-		Books book = Books.builder().title(dto.getTitle()).subtitle(dto.getSubtitle()).author(dto.getAuthor())
+		// ==================================================
+		// AUTO CREATE MAGAZINE RECORD
+		// ==================================================
+
+		if (dto.getMagazineNo() != null && category != BookCategory.MAGAZINE) {
+
+			boolean magazineExists = bookRepo.existsByMagazineNoAndCategory(dto.getMagazineNo(), BookCategory.MAGAZINE);
+
+			if (!magazineExists) {
+
+				Books magazine = Books.builder().title("மானுடம் இதழ் - " + dto.getMagazineNo())
+						.subtitle("Issue No : " + dto.getMagazineNo()).author("மானுடம்").magazineNo(dto.getMagazineNo())
+						.category(BookCategory.MAGAZINE).paid(false).status(BookStatus.DRAFT)
+						.coverImagePath(coverImageUrl).issueType(MagazineIssueType.LATEST).createdBy(admin)
+						.createdAt(LocalDateTime.now()).build();
+
+				bookRepo.save(magazine);
+
+				log.info("📰 Magazine auto-created | magazineNo={}", dto.getMagazineNo());
+			}
+		}
+
+		// ==================================================
+		// ARTICLE SAVE
+		// ==================================================
+
+		Books article = Books.builder().title(dto.getTitle()).subtitle(dto.getSubtitle()).author(dto.getAuthor())
 				.magazineNo(dto.getMagazineNo()).category(category).tags(tags).paid(dto.getPaid())
 				.price(dto.getPaid() ? dto.getPrice() : null).status(dto.getStatus()).coverImagePath(coverImageUrl)
 				.issueType(dto.getIssueType()).createdBy(admin).createdAt(LocalDateTime.now()).build();
 
-		bookRepo.save(book);
+		bookRepo.save(article);
 
-		log.info("🎉 [BOOK UPLOAD SUCCESS] bookId={} admin={}", book.getId(), adminEmail);
+		log.info("🎉 [BOOK UPLOAD SUCCESS] articleId={} magazineNo={}", article.getId(), article.getMagazineNo());
 	}
 
 	@Override

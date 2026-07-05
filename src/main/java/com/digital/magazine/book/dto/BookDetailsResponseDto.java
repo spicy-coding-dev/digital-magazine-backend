@@ -28,5 +28,9 @@ public class BookDetailsResponseDto {
 
 	private String status;
 
+	private boolean preview;
+
+	private boolean subscriptionRequired;
+
 	private List<String> tags;
 }

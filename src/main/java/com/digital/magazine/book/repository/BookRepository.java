@@ -54,4 +54,28 @@ public interface BookRepository extends JpaRepository<Books, Long> {
 	List<Books> findTop5ByCategoryAndStatusAndIdNotOrderByUpdatedAtDesc(BookCategory category, BookStatus status,
 			Long id);
 
+	boolean existsByMagazineNoAndCategory(Long magazineNo, BookCategory category);
+
+	@Query("""
+			SELECT b
+			FROM Books b
+			WHERE b.magazineNo = :magazineNo
+			AND b.category <> :category
+			AND b.status = :status
+			ORDER BY
+			CASE b.category
+			    WHEN 'HISTORY' THEN 1
+			    WHEN 'SOCIETY' THEN 2
+			    WHEN 'LITERATURE' THEN 3
+			    WHEN 'CULTURE' THEN 4
+			    WHEN 'ENVIRONMENT' THEN 5
+			    WHEN 'EDITORIAL' THEN 6
+			    WHEN 'CINIMA' THEN 7
+			END,
+			b.createdAt ASC
+			""")
+	List<Books> findMagazineArticles(Long magazineNo, BookCategory category, BookStatus status);
+
+	Optional<Books> findByMagazineNoAndCategory(Long magazineNo, BookCategory category);
+
 }
