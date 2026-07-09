@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.digital.magazine.common.response.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -43,6 +44,15 @@ public class GlobalExceptionHandler {
 		log.warn("Email already registered: {}", ex.getMessage());
 
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(ex.getMessage()));
+	}
+
+	@ExceptionHandler(InvalidBookException.class)
+	public ResponseEntity<ApiResponse<Void>> handleInvalidBookException(InvalidBookException ex,
+			HttpServletRequest request) {
+
+		log.warn("❌ Invalid Book Request | path={} | message={}", request.getRequestURI(), ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
 	// ✅ Invalid / expired token

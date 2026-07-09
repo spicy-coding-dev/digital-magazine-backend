@@ -11,6 +11,7 @@ import com.digital.magazine.book.dto.BookStatusUpdateDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
+import com.digital.magazine.book.dto.MagazineDetailsResponseDto;
 
 public interface BookService {
 	void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, UserDetails userDetails);
@@ -22,6 +23,8 @@ public interface BookService {
 	String getContentByBookId(Long bookId);
 
 	public BookDetailsWithRelatedResponseDto getBookDetails(Long bookId);
+
+	public MagazineDetailsResponseDto getMagazineDetails(Long magazineNo, Authentication auth);
 
 	public List<BookSummaryDto> getBooksByCategory(String categoryLabel, String status);
 

@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
@@ -28,6 +28,8 @@ import com.digital.magazine.book.service.UserBookService;
 import com.digital.magazine.common.enums.BookCategory;
 import com.digital.magazine.common.enums.BookStatus;
 import com.digital.magazine.common.exception.BookNotPublishedException;
+import com.digital.magazine.common.exception.BookNotPurchasableException;
+import com.digital.magazine.common.exception.InvalidBookException;
 import com.digital.magazine.common.exception.InvalidCategoryException;
 import com.digital.magazine.common.exception.InvalidStatusException;
 import com.digital.magazine.common.exception.NoBooksFoundException;
@@ -220,7 +222,18 @@ public class UserBookServiceImpl implements UserBookService {
 	@Override
 	public BookDetailsWithRelatedResponseDto getBookDetails(Long bookId, Authentication auth) {
 
-		Books book = validateBookAccess(bookId, auth);
+		Books book = getBook(bookId);
+
+		validatePublished(book);
+
+		// 🚫 Magazine should not open using Book Details API
+		if (book.getCategory() == BookCategory.MAGAZINE) {
+
+			log.warn("🚫 Invalid API Access | bookId={} | category=MAGAZINE", bookId);
+
+			throw new InvalidBookException(
+					"இந்த பதிவு ஒரு இதழ். இதழ்கள் தனிப்பட்ட இதழ் பக்கத்தில் மட்டுமே திறக்கப்படும்.");
+		}
 
 		// 👤 Logged in user
 		User user = null;
@@ -294,9 +307,9 @@ public class UserBookServiceImpl implements UserBookService {
 			// 🔒 Preview
 			else {
 
-				log.info("🔒 ACCESS LIMITED : PREVIEW ONLY (20 LINES)");
+				log.info("🔒 ACCESS LIMITED : PREVIEW ONLY (1500 letters)");
 
-				finalContent = getPreview(content.getContent(), 20);
+				finalContent = getPreview(content.getContent(), 1500);
 			}
 
 		} else {
@@ -308,10 +321,19 @@ public class UserBookServiceImpl implements UserBookService {
 
 		BookDetailsResponseDto bookDto = mapToBookDetailsDto(book, finalContent, preview);
 
+		log.info("🔍 Fetching Related Books | category={}", book.getCategory());
+
+		List<Books> relatedBooks = bookRepo.findTop5ByCategoryAndStatusAndIdNotOrderByCreatedAtDesc(book.getCategory(),
+				BookStatus.PUBLISHED, book.getId());
+
+		log.info("📚 Related Books Count : {}", relatedBooks.size());
+
+		List<BookSummaryDto> relatedDtos = relatedBooks.stream().map(b -> mapToSummary(b, auth)).toList();
+
 		log.info("📤 Response Preview Mode : {}", preview);
 		log.info("========================================================");
 
-		return BookDetailsWithRelatedResponseDto.builder().book(bookDto).build();
+		return BookDetailsWithRelatedResponseDto.builder().book(bookDto).relatedBooks(relatedDtos).build();
 	}
 
 	@Override
@@ -319,17 +341,100 @@ public class UserBookServiceImpl implements UserBookService {
 
 		log.info("📰 [MAGAZINE DETAILS] magazineNo={}", magazineNo);
 
-		Books magazine = bookRepo.findByMagazineNoAndCategory(magazineNo, BookCategory.MAGAZINE)
-				.orElseThrow(() -> new NoBooksFoundException("இதழ் கிடைக்கவில்லை"));
+		// 📖 Get Magazine
+		Books magazine = getMagazine(magazineNo);
 
+		// ✅ Validate Published
+		validatePublished(magazine);
+
+		// 🔒 Paid Magazine Access Check
+		if (magazine.isPaid()) {
+
+			User user = null;
+
+			if (auth != null) {
+				user = userRepo.findByEmail(auth.getName()).orElse(null);
+			}
+
+			boolean hasDigitalSub = false;
+			boolean purchased = false;
+
+			if (user != null) {
+
+				hasDigitalSub = userSubscriptionRepo.existsByUserAndPlan_TypeAndStatusAndEndDateAfter(user,
+						SubscriptionType.DIGITAL, SubscriptionStatus.ACTIVE, LocalDate.now());
+
+				purchased = magazinePurchaseRepo.existsByUserAndBook(user, magazine);
+			}
+
+			boolean accessible = hasDigitalSub || purchased;
+
+			log.info("💳 Magazine Paid        : {}", magazine.isPaid());
+			log.info("✅ Magazine Accessible : {}", accessible);
+
+			if (!accessible) {
+
+				log.warn("🚫 Magazine Access Denied | magazineNo={}", magazineNo);
+
+				throw new BookNotPurchasableException("இந்த இதழைப் படிக்க சந்தா அல்லது வாங்குதல் அவசியம்.");
+			}
+		}
+
+		// 📚 Fetch Articles
 		List<Books> articles = bookRepo.findMagazineArticles(magazineNo, BookCategory.MAGAZINE, BookStatus.PUBLISHED);
 
-		log.info("📚 Total Articles : {}", articles.size());
+		log.info("📚 Total Articles Found : {}", articles.size());
 
+		// 🔄 Entity -> DTO
 		List<BookDetailsResponseDto> response = articles.stream().map(this::mapMagazineArticle).toList();
 
+		log.info("✅ Magazine Response Prepared | magazineNo={} | articleCount={}", magazineNo, response.size());
+
+		log.info("🔍 Fetching Related Books | category={}", magazine.getCategory());
+
+		List<Books> relatedBooks = bookRepo.findTop5ByCategoryAndStatusAndIdNotOrderByCreatedAtDesc(
+				magazine.getCategory(), BookStatus.PUBLISHED, magazine.getId());
+
+		log.info("📚 Related Books Count : {}", relatedBooks.size());
+
+		List<BookSummaryDto> relatedDtos = relatedBooks.stream().map(b -> mapToSummary(b, auth)).toList();
+
 		return MagazineDetailsResponseDto.builder().magazineNo(magazineNo).title(magazine.getTitle())
-				.coverImage(magazine.getCoverImagePath()).articles(response).build();
+				.coverImage(magazine.getCoverImagePath()).articles(response).relatedBooks(relatedDtos).build();
+	}
+
+	private BookSummaryDto mapToSummary(Books book, Authentication auth) {
+
+		User user = null;
+
+		if (auth != null) {
+			user = userRepo.findByEmail(auth.getName()).orElse(null);
+		}
+
+		boolean accessible = true;
+
+		// 🔒 Paid Book Access Check
+		if (book.isPaid()) {
+
+			boolean hasDigitalSub = false;
+			boolean purchased = false;
+
+			if (user != null) {
+
+				hasDigitalSub = userSubscriptionRepo.existsByUserAndPlan_TypeAndStatusAndEndDateAfter(user,
+						SubscriptionType.DIGITAL, SubscriptionStatus.ACTIVE, LocalDate.now());
+
+				purchased = magazinePurchaseRepo.existsByUserAndBook(user, book);
+			}
+
+			accessible = hasDigitalSub || purchased;
+		}
+
+		return BookSummaryDto.builder().id(book.getId()).title(book.getTitle()).subTitle(book.getSubtitle())
+				.author(book.getAuthor()).category(book.getCategory().getTamilLabel())
+				.coverImage(book.getCoverImagePath()).magazineNo(book.getMagazineNo()).paid(book.isPaid())
+				.price(book.getPrice()).status(book.getStatus()).accessible(accessible).issueType(book.getIssueType())
+				.uploadAt(book.getCreatedAt()).build();
 	}
 
 	private BookDetailsResponseDto mapMagazineArticle(Books book) {
@@ -338,6 +443,7 @@ public class UserBookServiceImpl implements UserBookService {
 
 		return BookDetailsResponseDto.builder().id(book.getId()).title(book.getTitle()).subtitle(book.getSubtitle())
 				.authorName(book.getAuthor()).magazineNo(book.getMagazineNo())
+				.category(book.getCategory().getTamilLabel()).coverImage(book.getCoverImagePath())
 				.content(content != null ? content.getContent() : null).publishedAt(book.getCreatedAt())
 				.status(book.getStatus().name()).tags(book.getTags().stream().map(Tag::getName).toList()).build();
 	}
@@ -347,56 +453,64 @@ public class UserBookServiceImpl implements UserBookService {
 		LocalDateTime publishedAt = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
 
 		return BookDetailsResponseDto.builder().id(book.getId()).title(book.getTitle()).subtitle(book.getSubtitle())
-				.authorName(book.getAuthor()).magazineNo(book.getMagazineNo()).content(content != null ? content : null)
-				.publishedAt(publishedAt).status(book.getStatus().name()).preview(preview).subscriptionRequired(preview)
-				.tags(book.getTags().stream().map(Tag::getName).toList()).build();
+				.authorName(book.getAuthor()).magazineNo(book.getMagazineNo())
+				.category(book.getCategory().getTamilLabel()).coverImage(book.getCoverImagePath())
+				.content(content != null ? content : null).publishedAt(publishedAt).status(book.getStatus().name())
+				.preview(preview).subscriptionRequired(preview).tags(book.getTags().stream().map(Tag::getName).toList())
+				.build();
 	}
 
-//	private String getPreview(String text, int lines) {
-//
-//		if (text == null)
-//			return null;
-//
-//		String[] split = text.split("\n");
-//
-//		return Arrays.stream(split).limit(lines).collect(Collectors.joining("\n"));
-//	}
-
-	private String getPreview(String html, int paragraphs) {
+	private String getPreview(String html, int maxCharacters) {
 
 		if (html == null || html.isBlank()) {
 			return null;
 		}
 
-		Document document = Jsoup.parse(html);
+		Document doc = Jsoup.parseBodyFragment(html);
 
-		Elements elements = document.select("p");
+		String bodyHtml = doc.body().html();
 
-		StringBuilder preview = new StringBuilder();
-
-		for (int i = 0; i < Math.min(paragraphs, elements.size()); i++) {
-			preview.append(elements.get(i).outerHtml());
+		if (bodyHtml.length() <= maxCharacters) {
+			return bodyHtml;
 		}
 
-		return preview.toString();
+		String preview = bodyHtml.substring(0, maxCharacters);
+
+		return Jsoup.parseBodyFragment(preview).body().html();
 	}
 
-	private Books validateBookAccess(Long bookId, Authentication auth) {
+	private void validatePublished(Books book) {
 
-		log.info("🔍 Validating book access | bookId={}", bookId);
-
-		Books book = bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("புத்தகம் கிடைக்கவில்லை"));
+		log.info("🔍 Validating Published Status | id={}", book.getId());
 
 		if (book.getStatus() != BookStatus.PUBLISHED) {
 
-			log.warn("⚠️ Book not published | bookId={}", bookId);
+			log.warn("⚠️ Not Published | id={}", book.getId());
 
 			throw new BookNotPublishedException("இந்த புத்தகம் இன்னும் வெளியிடப்படவில்லை");
 		}
 
-		log.info("✅ Book validation success | bookId={}", bookId);
+		log.info("✅ Validation Success | id={}", book.getId());
+	}
 
-		return book;
+	private Books getBook(Long bookId) {
+
+		log.info("📘 Fetching Book | bookId={}", bookId);
+
+		return bookRepo.findById(bookId).orElseThrow(() -> {
+			log.warn("❌ Book not found | bookId={}", bookId);
+			return new NoBooksFoundException("புத்தகம் கிடைக்கவில்லை");
+		});
+	}
+
+	private Books getMagazine(Long magazineNo) {
+
+		log.info("📰 Fetching Magazine | magazineNo={}", magazineNo);
+
+		return bookRepo.findByMagazineNoAndCategory(magazineNo, BookCategory.MAGAZINE).orElseThrow(() -> {
+			log.warn("❌ Magazine not found | magazineNo={}", magazineNo);
+			return new NoBooksFoundException("இதழ் கிடைக்கவில்லை");
+		});
 	}
 
 //	private Books validateBookAccess(Long bookId, Authentication auth) {

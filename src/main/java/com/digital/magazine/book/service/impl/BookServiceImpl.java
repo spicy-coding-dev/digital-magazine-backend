@@ -20,6 +20,7 @@ import com.digital.magazine.book.dto.BookStatusUpdateDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
+import com.digital.magazine.book.dto.MagazineDetailsResponseDto;
 import com.digital.magazine.book.entity.BookContent;
 import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.entity.Tag;
@@ -34,6 +35,7 @@ import com.digital.magazine.common.exception.BookContentNotFoundException;
 import com.digital.magazine.common.exception.FileDeletionException;
 import com.digital.magazine.common.exception.FileUploadException;
 import com.digital.magazine.common.exception.InvalidBookContentException;
+import com.digital.magazine.common.exception.InvalidBookException;
 import com.digital.magazine.common.exception.InvalidCategoryException;
 import com.digital.magazine.common.exception.InvalidEditorImageException;
 import com.digital.magazine.common.exception.InvalidFileException;
@@ -242,6 +244,15 @@ public class BookServiceImpl implements BookService {
 		// 1️⃣ Book check
 		Books book = bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("Book not found"));
 
+		// 🚫 Magazine should not open using Book Details API
+		if (book.getCategory() == BookCategory.MAGAZINE) {
+
+			log.warn("🚫 Invalid API Access | bookId={} | category=MAGAZINE", bookId);
+
+			throw new InvalidBookException(
+					"இந்த பதிவு ஒரு இதழ். இதழ்கள் தனிப்பட்ட இதழ் பக்கத்தில் மட்டுமே திறக்கப்படும்.");
+		}
+
 		// 2️⃣ Content check (IMPORTANT 🔥)
 		Optional<BookContent> bookContent = bookContentRepo.findByBookId(bookId);
 
@@ -255,7 +266,7 @@ public class BookServiceImpl implements BookService {
 		// 4️⃣ Related books
 		log.info("🔍 Fetching related books | category={}", book.getCategory());
 
-		List<Books> relatedBooks = bookRepo.findTop5ByCategoryAndStatusAndIdNotOrderByUpdatedAtDesc(book.getCategory(),
+		List<Books> relatedBooks = bookRepo.findTop5ByCategoryAndStatusAndIdNotOrderByCreatedAtDesc(book.getCategory(),
 				BookStatus.PUBLISHED, bookId);
 
 		List<BookSummaryDto> relatedDtos = relatedBooks.stream().map(this::mapToSummary).toList();
@@ -265,33 +276,57 @@ public class BookServiceImpl implements BookService {
 		return BookDetailsWithRelatedResponseDto.builder().book(bookDto).relatedBooks(relatedDtos).build();
 	}
 
+	@Override
+	public MagazineDetailsResponseDto getMagazineDetails(Long magazineNo, Authentication auth) {
+
+		log.info("📰 [MAGAZINE DETAILS] magazineNo={}", magazineNo);
+
+		// 📖 Get Magazine
+		Books magazine = getMagazine(magazineNo);
+
+		// 📚 Fetch Articles
+		List<Books> articles = bookRepo.findMagazineArticles(magazineNo, BookCategory.MAGAZINE, BookStatus.PUBLISHED);
+
+		log.info("📚 Total Articles Found : {}", articles.size());
+
+		// 🔄 Entity -> DTO
+		List<BookDetailsResponseDto> response = articles.stream().map(this::mapMagazineArticle).toList();
+
+		log.info("✅ Magazine Response Prepared | magazineNo={} | articleCount={}", magazineNo, response.size());
+
+		log.info("🔍 Fetching Related Books | category={}", magazine.getCategory());
+
+		List<Books> relatedBooks = bookRepo.findTop5ByCategoryAndStatusAndIdNotOrderByCreatedAtDesc(
+				magazine.getCategory(), BookStatus.PUBLISHED, magazine.getId());
+
+		log.info("📚 Related Books Count : {}", relatedBooks.size());
+
+		List<BookSummaryDto> relatedDtos = relatedBooks.stream().map(b -> mapToSummary(b)).toList();
+
+		return MagazineDetailsResponseDto.builder().magazineNo(magazineNo).title(magazine.getTitle())
+				.coverImage(magazine.getCoverImagePath()).articles(response).relatedBooks(relatedDtos).build();
+	}
+
+	private Books getMagazine(Long magazineNo) {
+
+		log.info("📰 Fetching Magazine | magazineNo={}", magazineNo);
+
+		return bookRepo.findByMagazineNoAndCategory(magazineNo, BookCategory.MAGAZINE).orElseThrow(() -> {
+			log.warn("❌ Magazine not found | magazineNo={}", magazineNo);
+			return new NoBooksFoundException("இதழ் கிடைக்கவில்லை");
+		});
+	}
+
 	private BookDetailsResponseDto mapToBookDetailsDto(Books book, BookContent content) {
 
 		LocalDateTime publishedAt = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
 
 		return BookDetailsResponseDto.builder().id(book.getId()).title(book.getTitle()).subtitle(book.getSubtitle())
 				.authorName(book.getAuthor()).magazineNo(book.getMagazineNo())
+				.category(book.getCategory().getTamilLabel()).coverImage(book.getCoverImagePath())
 				.content(content != null ? content.getContent() : null).publishedAt(publishedAt)
 				.status(book.getStatus().name()).tags(book.getTags().stream().map(Tag::getName).toList()).build();
 	}
-
-//	@Override
-//	public BookDetailsResponseDto getBookDetails(Long bookId) {
-//
-//		Books book = bookRepo.findById(bookId).orElseThrow(() -> new NoBooksFoundException("Book not found"));
-//
-//		BookContent bookContent = bookContentRepo.findByBookId(bookId)
-//				.orElseThrow(() -> new NoBooksFoundException("Book not found"));
-//
-//		log.info("📘 [SERVICE] Mapping book details | bookId={}", bookId);
-//
-//		LocalDateTime publishedAt = book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt();
-//
-//		return BookDetailsResponseDto.builder().id(book.getId()).title(book.getTitle()).subtitle(book.getSubtitle())
-//				.authorName(book.getAuthor()).content(bookContent.getContent()) // HTML from editor
-//				.magazineNo(book.getMagazineNo()).publishedAt(publishedAt).status(book.getStatus().name())
-//				.tags(book.getTags().stream().map(Tag::getName).toList()).build();
-//	}
 
 	@Override
 	public BookSummaryDto updateBook(Long bookId, BookUpdateRequestDto dto, Authentication auth) {
@@ -523,6 +558,17 @@ public class BookServiceImpl implements BookService {
 				.coverImage(book.getCoverImagePath()).magazineNo(book.getMagazineNo()).paid(book.isPaid())
 				.price(book.getPrice()).status(book.getStatus()).accessible(!book.isPaid())
 				.uploadAt(book.getUpdatedAt() != null ? book.getUpdatedAt() : book.getCreatedAt()).build();
+	}
+
+	private BookDetailsResponseDto mapMagazineArticle(Books book) {
+
+		BookContent content = bookContentRepo.findByBookId(book.getId()).orElse(null);
+
+		return BookDetailsResponseDto.builder().id(book.getId()).title(book.getTitle()).subtitle(book.getSubtitle())
+				.authorName(book.getAuthor()).magazineNo(book.getMagazineNo())
+				.category(book.getCategory().getTamilLabel()).coverImage(book.getCoverImagePath())
+				.content(content != null ? content.getContent() : null).publishedAt(book.getCreatedAt())
+				.status(book.getStatus().name()).tags(book.getTags().stream().map(Tag::getName).toList()).build();
 	}
 
 	private Set<Tag> resolveTags(List<String> tags) {

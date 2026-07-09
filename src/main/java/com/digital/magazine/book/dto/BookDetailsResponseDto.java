@@ -22,6 +22,10 @@ public class BookDetailsResponseDto {
 
 	private Long magazineNo;
 
+	private String category;
+
+	private String coverImage;
+
 	private String content; // HTML
 
 	private LocalDateTime publishedAt;

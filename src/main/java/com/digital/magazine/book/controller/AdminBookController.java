@@ -26,6 +26,7 @@ import com.digital.magazine.book.dto.BookStatusUpdateDto;
 import com.digital.magazine.book.dto.BookSummaryDto;
 import com.digital.magazine.book.dto.BookUpdateRequestDto;
 import com.digital.magazine.book.dto.BookUploadRequestDto;
+import com.digital.magazine.book.dto.MagazineDetailsResponseDto;
 import com.digital.magazine.book.service.BookService;
 import com.digital.magazine.common.response.ApiResponse;
 
@@ -97,6 +98,17 @@ public class AdminBookController {
 		BookDetailsWithRelatedResponseDto response = bookService.getBookDetails(bookId);
 
 		return ResponseEntity.ok(new ApiResponse<>(response));
+	}
+
+	@GetMapping("/magazines/{magazineNo}")
+	public ResponseEntity<ApiResponse<MagazineDetailsResponseDto>> getMagazineDetails(@PathVariable Long magazineNo,
+			Authentication auth) {
+
+		log.info("📰 [CONTROLLER] Get Magazine Details | magazineNo={}", magazineNo);
+
+		MagazineDetailsResponseDto response = bookService.getMagazineDetails(magazineNo, auth);
+
+		return ResponseEntity.ok(new ApiResponse<>("இதழ் விவரங்கள் பெறப்பட்டன", response));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")

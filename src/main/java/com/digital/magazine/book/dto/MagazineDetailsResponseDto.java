@@ -21,4 +21,6 @@ public class MagazineDetailsResponseDto {
 
 	private List<String> tags;
 
+	private List<BookSummaryDto> relatedBooks;
+
 }
