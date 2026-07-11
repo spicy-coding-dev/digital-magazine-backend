@@ -5,19 +5,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 
 import com.digital.magazine.book.dto.AdminReplyRequestDto;
+import com.digital.magazine.book.dto.CommentPageResponseDto;
 import com.digital.magazine.book.dto.CommentRequestDto;
 import com.digital.magazine.book.dto.CommentResponseDto;
 
 public interface BookCommentService {
 
 	CommentResponseDto addUserComment(Long bookId, CommentRequestDto dto, Authentication auth);
-//
-//	Page<CommentResponseDto> getBookComments(Long bookId, Pageable pageable);
-//
-//	Page<CommentResponseDto> getPendingCommentsForAdmin(Pageable pageable);
 
-//	CommentResponseDto replyByAdmin(Long commentId, AdminReplyRequestDto dto);
-//
-//	void deleteComment(Long commentId, Authentication auth);
+	CommentPageResponseDto getBookComments(Long bookId, Pageable pageable);
+
+	CommentPageResponseDto getPendingCommentsForAdmin(Pageable pageable);
+
+	CommentResponseDto replyByAdmin(Long commentId, AdminReplyRequestDto dto);
+
+	void deleteComment(Long commentId, Authentication auth);
 
 }

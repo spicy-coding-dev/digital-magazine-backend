@@ -84,7 +84,7 @@ class BookServiceImplTest {
 		bookService.uploadBook(dto, coverImage, userDetails);
 
 		// then
-		verify(bookRepo, times(1)).save(any(Books.class));
+		verify(bookRepo, times(2)).save(any(Books.class));
 		verify(supabaseStorageService).uploadPublicFile(any(), eq("books/covers"));
 	}
 

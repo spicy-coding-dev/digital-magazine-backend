@@ -288,6 +288,39 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, ex.getMessage(), null));
 	}
 
+	@ExceptionHandler(CommentNotFoundException.class)
+	public ResponseEntity<ApiResponse<Void>> handleCommentNotFound(CommentNotFoundException ex) {
+
+		log.warn("❌ {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(CommentAlreadyRepliedException.class)
+	public ResponseEntity<ApiResponse<Void>> handleAlreadyReplied(CommentAlreadyRepliedException ex) {
+
+		log.warn("⚠️ {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(InvalidCommentReplyException.class)
+	public ResponseEntity<ApiResponse<Void>> handleInvalidReply(InvalidCommentReplyException ex) {
+
+		log.warn("⚠️ {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
+	@ExceptionHandler(InvalidCommentException.class)
+	public ResponseEntity<ApiResponse<Void>> handleInvalidCommentException(InvalidCommentException ex,
+			HttpServletRequest request) {
+
+		log.warn("⚠️ Invalid Comment | path={} | message={}", request.getRequestURI(), ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(ex.getMessage(), null));
+	}
+
 	// 🔴 FINAL catch-all (never expose internal error)
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<String>> handleGenericException(Exception ex) {

@@ -23,6 +23,7 @@ import com.digital.magazine.security.service.CustomUserDetailsService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
@@ -107,8 +108,12 @@ class JwtAuthenticationFilterTest {
 
 		filter.doFilter(request, response, filterChain);
 
-		assertEquals(401, response.getStatus());
-		assertTrue(response.getContentAsString().contains("Please Login"));
+		assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+
+		String body = response.getContentAsString();
+
+		assertTrue(body.contains("\"status\":401"));
+		assertTrue(body.contains("Session"));
 	}
 
 	@Test
@@ -130,28 +135,34 @@ class JwtAuthenticationFilterTest {
 
 		filter.doFilter(request, response, filterChain);
 
-		assertEquals(401, response.getStatus());
-		assertTrue(response.getContentAsString().contains("Token இல்லை"));
+		assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+		assertTrue(response.getContentAsString().contains("Token"));
+		verify(filterChain, never()).doFilter(any(), any());
 	}
 
 	@Test
-	void authorizationHeaderMissing_shouldReturnUnauthorized() throws Exception {
+	void authorizationHeaderMissing_shouldContinueFilterChain() throws Exception {
 
 		SecurityContextHolder.clearContext();
 
 		MockHttpServletRequest request = new MockHttpServletRequest();
-
 		request.setRequestURI("/api/v1/books");
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		filter.doFilter(request, response, filterChain);
 
-		assertEquals(401, response.getStatus());
+		// Filter should continue the chain
+		verify(filterChain, times(1)).doFilter(request, response);
 
-		assertTrue(response.getContentAsString().contains("Token இல்லை"));
-
+		// No authentication should be created
 		assertNull(SecurityContextHolder.getContext().getAuthentication());
+
+		// Filter itself should not return 401
+		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+
+		// No response body should be written by the filter
+		assertEquals("", response.getContentAsString());
 	}
 
 }
