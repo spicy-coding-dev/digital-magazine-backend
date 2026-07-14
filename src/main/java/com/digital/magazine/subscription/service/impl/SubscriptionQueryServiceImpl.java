@@ -7,10 +7,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.digital.magazine.book.entity.Books;
 import com.digital.magazine.book.repository.BookRepository;
+import com.digital.magazine.common.exception.UserNotFoundException;
 import com.digital.magazine.subscription.dto.MagazinePurchaseAdminDto;
 import com.digital.magazine.subscription.dto.SubscribedUserDto;
 import com.digital.magazine.subscription.dto.SubscriptionPopupDto;
@@ -24,6 +26,7 @@ import com.digital.magazine.subscription.repository.MagazinePurchaseRepository;
 import com.digital.magazine.subscription.repository.UserSubscriptionRepository;
 import com.digital.magazine.subscription.service.SubscriptionQueryService;
 import com.digital.magazine.user.entity.User;
+import com.digital.magazine.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +39,7 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 	private final UserSubscriptionRepository subscriptionRepo;
 	private final MagazinePurchaseRepository purchaseRepo;
 	private final BookRepository bookRepo;
+	private final UserRepository userRepo;
 
 	@Override
 	public List<SubscribedUserDto> getSubscribedUsers(SubscriptionType type, SubscriptionStatus status) {
@@ -105,7 +109,9 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 		return purchases.stream().map(this::toDto).toList();
 	}
 
-	public SubscriptionPopupDto getSubscriptionPopup(User user) {
+	public SubscriptionPopupDto getSubscriptionPopup(Authentication auth) {
+
+		User user = userRepo.findByEmail(auth.getName()).orElseThrow(() -> new UserNotFoundException("User not found"));
 
 		List<UserSubscription> subscriptions = subscriptionRepo.findByUserAndStatusIn(user,
 				List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRING_SOON, SubscriptionStatus.EXPIRED));

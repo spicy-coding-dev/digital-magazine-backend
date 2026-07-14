@@ -14,6 +14,7 @@ import com.digital.magazine.book.dto.BookUploadRequestDto;
 import com.digital.magazine.book.dto.MagazineDetailsResponseDto;
 
 public interface BookService {
+
 	void uploadBook(BookUploadRequestDto dto, MultipartFile coverImage, UserDetails userDetails);
 
 	public String uploadEditorImage(MultipartFile image);
