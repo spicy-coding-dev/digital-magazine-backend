@@ -155,19 +155,33 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
 					.build();
 
+		} else if (sub.getStatus() == SubscriptionStatus.ACTIVE) {
+
+			return SubscriptionPopupDto.builder()
+
+					.show(true)
+
+					.status("ACTIVE")
+
+					.message("உங்கள் " + sub.getPlan().getName() + " " + sub.getStartDate() + " முதல் "
+							+ sub.getEndDate() + " வரை செயல்பாட்டில் இருக்கும்")
+
+					.endDate(sub.getEndDate())
+
+					.build();
+
 		}
 
-		/* 🔥 ACTIVE */
 		return SubscriptionPopupDto.builder()
 
 				.show(true)
 
-				.status("ACTIVE")
+				.status(null)
 
-				.message("உங்கள் " + sub.getPlan().getName() + " " + sub.getStartDate() + " முதல் " + sub.getEndDate()
-						+ " வரை செயல்பாட்டில் இருக்கும்")
+				.message(
+						"வரவேற்கிறோம்! தற்போது உங்களிடம் எந்த Subscription-மும் இல்லை. அனைத்து அம்சங்களையும் பயன்படுத்த ஒரு திட்டத்தை தேர்வு செய்து Subscription பெறுங்கள்.")
 
-				.endDate(sub.getEndDate())
+				.endDate(null)
 
 				.build();
 	}
