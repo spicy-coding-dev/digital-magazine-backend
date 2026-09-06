@@ -3,7 +3,7 @@ package com.digital.magazine.common.enums;
 public enum BookCategory {
 
 	HISTORY("வரலாறு"), SOCIETY("சமூகம்"), LITERATURE("இலக்கியம்"), CULTURE("பண்பாடு"), ENVIRONMENT("சூழலியல்"),
-	EDITORIAL("தலையங்கம்"), CINIMA("தலையங்கம்"), MAGAZINE("இதழ்கள்");
+	EDITORIAL("தலையங்கம்"), REVIEW("தலையங்கம்"), MAGAZINE("இதழ்கள்");
 
 	private final String tamilLabel;
 
